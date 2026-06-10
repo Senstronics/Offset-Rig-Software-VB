@@ -165,8 +165,6 @@ Public Function ReadBoardTypeList()
     Dim s As String
     Dim SplitValues() As String
     Dim i As Long
-        
-    Dim i As Long
     i = 1
     Do While Not EOF(FileHandle)
         s = InputLine(FileHandle)
@@ -209,8 +207,6 @@ Public Function ReadRetrieveUnionList()
     Dim s As String
     Dim SplitValues() As String
     Dim i As Long
-        
-    Dim i As Long
     i = 1
     Do While Not EOF(FileHandle)
         s = InputLine(FileHandle)
@@ -250,8 +246,6 @@ Public Function ReadConnectorTypeList()
 
     Dim s As String
     Dim SplitValues() As String
-    Dim i As Long
-        
     Dim i As Long
     i = 1
     Do While Not EOF(FileHandle)
@@ -294,8 +288,6 @@ Public Function ReadRetrieveColourList()
 
     Dim s As String
     Dim SplitValues() As String
-    Dim i As Long
-        
     Dim i As Long
     i = 1
     Do While Not EOF(FileHandle)
