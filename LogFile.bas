@@ -331,8 +331,6 @@ Public Function ReadRetrieveCableList()
     Dim i As Long
         
     NumberOfCables = 0
-    
-    Dim i As Long
     i = 1
     Do While Not EOF(FileHandle)
         s = InputLine(FileHandle)
@@ -375,8 +373,6 @@ Public Function ReadRetrieveCableUsage()
     Dim i As Long
         
     NumberOfCableTypes = 0
-    
-    Dim i As Long
     i = 1
     Do While Not EOF(FileHandle)
         s = InputLine(FileHandle)
