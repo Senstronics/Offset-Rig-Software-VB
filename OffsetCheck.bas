@@ -1079,38 +1079,7 @@ Private Sub CHECKSTC()
     
 'connect VS to stc
     
-    If PinOutSwitch = "T" Then
-        SwitchSTCVsMeas
-    ElseIf PinOutSwitch = "Q" Then
-        SwitchSTCVsMeasQ
-    ElseIf PinOutSwitch = "M" Then
-        SwitchSTCVsMeasM
-    ElseIf PinOutSwitch = "Z" Then
-        SwitchSTCVsMeasZ
-    ElseIf PinOutSwitch = "A" Then
-        SwitchSTCVsMeasA
-    ElseIf PinOutSwitch = "W" Then
-        SwitchSTCVsMeasW
-    ElseIf PinOutSwitch = "L" Then
-        SwitchSTCVsMeasL
-    ElseIf PinOutSwitch = "N" Then
-        SwitchSTCVsMeasN
-    ElseIf PinOutSwitch = "F" Then
-        SwitchSTCVsMeasF
-        If ConnectorType = "C1" Or ConnectorType = "C2" Then 'sumitomo
-            SwitchSTCVsMeas
-        End If
-    ElseIf PinOutSwitch = "C" Then
-        SwitchSTCVsMeasC
-    ElseIf PinOutSwitch = "6" Then
-        SwitchSTCVsMeas6
-    ElseIf PinOutSwitch = "U" Then 'ADDED BY DW 17/11/23
-        SwitchSTCVsMeasU
-    Else
-        MsgBox "UNKNOWN BOARDTYPE CONTACT ENGINEERING"
-        MainForm.ClearDown
-        Exit Sub
-    End If
+    RouteDMM "STCVs"
     
           
 'dummy reading
@@ -1140,34 +1109,7 @@ DoEvents
 
 'connect GND to stc
 
-    If PinOutSwitch = "T" Then
-        SwitchSTCGndMeas
-    ElseIf PinOutSwitch = "Q" Then
-        SwitchSTCGndMeasQ
-    ElseIf PinOutSwitch = "M" Then
-        SwitchSTCGndMeasM
-    ElseIf PinOutSwitch = "Z" Then
-        SwitchSTCGndMeasZ
-    ElseIf PinOutSwitch = "A" Then
-        SwitchSTCGndMeasA
-    ElseIf PinOutSwitch = "W" Then
-        SwitchSTCGndMeasW
-    ElseIf PinOutSwitch = "X" Then
-        SwitchSTCGndMeasL
-    ElseIf PinOutSwitch = "N" Then
-        SwitchSTCGndMeasN
-    ElseIf PinOutSwitch = "F" Then
-        SwitchSTCGndMeasF
-        If ConnectorType = "C1" Or ConnectorType = "C2" Then 'sumitomo
-            SwitchSTCGndMeas
-        End If
-    ElseIf PinOutSwitch = "C" Then
-        SwitchSTCGndMeasC
-    ElseIf PinOutSwitch = "6" Then
-        SwitchSTCGndMeas6
-    ElseIf PinOutSwitch = "U" Then 'ADDED BY DW 17/11/23
-        SwitchSTCGndMeasU
-    End If
+    RouteDMM "STCGnd"
 
     If BoardType = "HY" Then
     Sleep 300
@@ -1196,34 +1138,7 @@ DoEvents
 DoEvents
 'connect Vout1 to stc
 
-    If PinOutSwitch = "T" Then
-        SwitchSTCVout1Meas
-    ElseIf PinOutSwitch = "Q" Then
-        SwitchSTCVout1MeasQ
-    ElseIf PinOutSwitch = "M" Then
-        SwitchSTCVout1MeasM
-    ElseIf PinOutSwitch = "Z" Then
-        SwitchSTCVout1MeasZ
-    ElseIf PinOutSwitch = "A" Then
-        SwitchSTCVout1MeasA
-    ElseIf PinOutSwitch = "W" Then
-        SwitchSTCVout1MeasW
-    ElseIf PinOutSwitch = "L" Then
-        SwitchSTCVout1MeasL
-    ElseIf PinOutSwitch = "N" Then
-        SwitchSTCVout1MeasN
-    ElseIf PinOutSwitch = "F" Then
-        SwitchSTCVout1MeasF
-        If ConnectorType = "C1" Or ConnectorType = "C2" Then 'sumitomo
-            SwitchSTCVout1Meas
-        End If
-    ElseIf PinOutSwitch = "C" Then
-        SwitchSTCVout1MeasC
-    ElseIf PinOutSwitch = "6" Then
-        SwitchSTCVout1Meas6
-    ElseIf PinOutSwitch = "U" Then 'ADDED BY DW 17/11/23
-        SwitchSTCVout1MeasU
-    End If
+    RouteDMM "STCVout1"
     
 'take reading
     VOUT1STCReading = MeasureDigitalMultimeterOhms
@@ -1252,32 +1167,7 @@ If Vout2STC = True Then
 
 'connect Vout2 to stc
 
-    If PinOutSwitch = "T" Then
-        SwitchSTCVout2Meas
-    ElseIf PinOutSwitch = "Q" Then
-        SwitchSTCVout2MeasQ
-    ElseIf PinOutSwitch = "M" Then
-        SwitchSTCVout2MeasM
-    ElseIf PinOutSwitch = "Z" Then
-        SwitchSTCVout2MeasZ
-    ElseIf PinOutSwitch = "W" Then
-        SwitchSTCVout2MeasW
-    ElseIf PinOutSwitch = "A" Then
-        SwitchSTCVout2MeasA
-    ElseIf PinOutSwitch = "L" Then
-        SwitchSTCVout2MeasL
-    ElseIf PinOutSwitch = "N" Then
-        SwitchSTCVout2MeasN
-    ElseIf PinOutSwitch = "F" Then
-        SwitchSTCVout2MeasF
-        If ConnectorType = "C1" Or ConnectorType = "C2" Then 'sumitomo
-            SwitchSTCVout2Meas
-        End If
-    ElseIf PinOutSwitch = "C" Then
-        SwitchSTCVout2MeasC
-    ElseIf PinOutSwitch = "6" Then
-        SwitchSTCVout2Meas6
-    End If
+    RouteDMM "STCVout2"
     
 'take reading
     VOUT2STCReading = MeasureDigitalMultimeterOhms
@@ -1387,7 +1277,7 @@ Dim Vout2Reading As Double
         
     If SwitchHyst = True Then
     
-        SwitchVout2MeasA
+        RouteDMMByPath "125,135,121,118"
         SetPSU2 Vsupply
         Vout1Reading = MeasureDigitalMultimeterVolts
         MainForm.VOUT1OutputDisplay = Format$(Vout1Reading, "0.0000")
@@ -1410,34 +1300,7 @@ Dim Vout2Reading As Double
 
     If OutputType = "C" Then
     
-        If PinOutSwitch = "T" Then
-            SwitchCurrentMeas
-        ElseIf PinOutSwitch = "Q" Then
-            SwitchCurrentMeasQ
-        ElseIf PinOutSwitch = "M" Then
-            SwitchCurrentMeasM
-        ElseIf PinOutSwitch = "Z" Then
-            SwitchCurrentMeasZ
-        ElseIf PinOutSwitch = "A" Then
-            SwitchCurrentMeasA
-        ElseIf PinOutSwitch = "W" Then
-            SwitchCurrentMeasW
-        ElseIf PinOutSwitch = "L" Then
-            SwitchCurrentMeasL
-        ElseIf PinOutSwitch = "N" Then
-            SwitchCurrentMeasN
-        ElseIf PinOutSwitch = "F" Then
-            SwitchCurrentMeasF
-            If ConnectorType = "C1" Or ConnectorType = "C2" Then 'sumitomo
-                SwitchCurrentMeas
-            End If
-        ElseIf PinOutSwitch = "C" Then
-            SwitchCurrentMeasC
-        ElseIf PinOutSwitch = "6" Then
-            SwitchCurrentMeas6
-        ElseIf PinOutSwitch = "U" Then 'ADDED BY DW 17/11/23
-            SwitchCurrentMeasU
-        End If
+        RouteDMM "Current"
 
         If BarcodeUnits = "B" Then
             FSPressure = (Mid$(MainForm.SecondMCSBarcode, 17, 4))
@@ -1455,32 +1318,7 @@ Dim Vout2Reading As Double
             Vout1Reading = MeasureDigitalMultimeterAmps
             Vout1Reading = Vout1Reading * 1000
 
-        If PinOutSwitch = "T" Then
-            SwitchVout1Meas
-        ElseIf PinOutSwitch = "Q" Then
-            SwitchVout1MeasQ
-        ElseIf PinOutSwitch = "M" Then
-            SwitchVout1MeasM
-        ElseIf PinOutSwitch = "Z" Then
-            SwitchVout1MeasZ
-        ElseIf PinOutSwitch = "A" Then
-            SwitchVout1MeasA
-        ElseIf PinOutSwitch = "W" Then
-            SwitchVout1MeasW
-        ElseIf PinOutSwitch = "L" Then
-            SwitchVout1MeasL
-        ElseIf PinOutSwitch = "N" Then
-            SwitchVout1MeasN
-        ElseIf PinOutSwitch = "F" Then
-            SwitchVout1MeasF
-            If ConnectorType = "C1" Or ConnectorType = "C2" Then 'sumitomo
-                SwitchVout1Meas
-            End If
-        ElseIf PinOutSwitch = "C" Then
-            SwitchVout1MeasC
-        ElseIf PinOutSwitch = "6" Then
-            SwitchVout1Meas6
-        End If
+        RouteDMM "Vout1"
     'ignore voltage output
         If MCSUnionType = "S05" Or Mid$(BoardType, 1, 1) = "L" Or ConnectorType = "H1" Then
             MainForm.CurrentDisplay.Visible = False
@@ -1506,32 +1344,7 @@ Dim Vout2Reading As Double
 
     Else
     
-        If PinOutSwitch = "T" Then
-            SwitchVout1Meas
-        ElseIf PinOutSwitch = "Q" Then
-            SwitchVout1MeasQ
-        ElseIf PinOutSwitch = "M" Then
-            SwitchVout1MeasM
-        ElseIf PinOutSwitch = "Z" Then
-            SwitchVout1MeasZ
-        ElseIf PinOutSwitch = "A" Then
-            SwitchVout1MeasA
-        ElseIf PinOutSwitch = "W" Then
-            SwitchVout1MeasW
-        ElseIf PinOutSwitch = "L" Then
-            SwitchVout1MeasL
-        ElseIf PinOutSwitch = "N" Then
-            SwitchVout1MeasN
-        ElseIf PinOutSwitch = "F" Then
-            SwitchVout1MeasF
-            If ConnectorType = "C1" Or ConnectorType = "C2" Then 'sumitomo
-                SwitchVout1Meas
-            End If
-        ElseIf PinOutSwitch = "C" Then
-            SwitchVout1MeasC
-        ElseIf PinOutSwitch = "6" Then
-            SwitchVout1Meas6
-        End If
+        RouteDMM "Vout1"
        
         If BarcodeUnits = "B" Then
             FSPressure = (Mid$(MainForm.SecondMCSBarcode, 17, 4))
@@ -1580,34 +1393,7 @@ Dim SwitchPSUValue As Double
         SetPSU2 Vsupply
 'switch to vout 2
 
-        If PinOutSwitch = "T" Then
-            SwitchVout2Meas
-        ElseIf PinOutSwitch = "Q" Then
-            SwitchVout2MeasQ
-        ElseIf PinOutSwitch = "3" Then
-            SwitchVout2MeasQ
-        ElseIf PinOutSwitch = "M" Then
-            SwitchVout2MeasM
-        ElseIf PinOutSwitch = "Z" Then
-            SwitchVout2MeasZ
-        ElseIf PinOutSwitch = "W" Then
-            SwitchVout2MeasW
-        ElseIf PinOutSwitch = "A" Then
-            SwitchVout2MeasA
-        ElseIf PinOutSwitch = "L" Then
-            SwitchVout2MeasL
-        ElseIf PinOutSwitch = "N" Then
-            SwitchVout2MeasN
-        ElseIf PinOutSwitch = "F" Then
-            SwitchVout2MeasF
-            If ConnectorType = "C1" Or ConnectorType = "C2" Then 'sumitomo
-                SwitchVout2Meas
-            End If
-        ElseIf PinOutSwitch = "C" Then
-            SwitchVout2MeasC
-        ElseIf PinOutSwitch = "6" Then
-            SwitchVout2Meas6
-        End If
+        RouteDMM "Vout2"
         
 'Take vout2 reading
         Vout2Reading = MeasureDigitalMultimeterVolts
@@ -1632,7 +1418,7 @@ Dim SwitchPSUValue As Double
         SetPSU2 Vsupply
         
         If SwitchHyst = True Then
-            SwitchVout1SwMeasA
+            RouteDMMByPath "125,143,121,118,233"
                             
      'Take vout2 reading
             Vout2Reading = MeasureDigitalMultimeterVolts
@@ -1669,15 +1455,7 @@ Dim SwitchPSUValue As Double
                       
             SetPSU3 LowerSwitchTarget
     
-            If PinOutSwitch = "T" Then
-                SwitchVout2SwMeasT
-            ElseIf PinOutSwitch = "A" Then
-                SwitchVout2SwMeasA
-            ElseIf PinOutSwitch = "L" Then
-                SwitchVout2SwMeasL
-            ElseIf PinOutSwitch = "R" Then
-                SwitchVout2SwMeasR
-            End If
+            RouteDMM "Vout2Sw"
     
         'Take vout2 reading
             Vout2Reading = MeasureDigitalMultimeterVolts
@@ -1752,7 +1530,7 @@ Private Sub CHECKVOUT2ONLY()
     
     MainForm.STCTargetDisplay = "OVRFLW"
 
-    SwitchSTCVsMeas
+    RouteDMM "STCVs"
            
 'dummy reading
     VSSTCReading = MeasureDigitalMultimeterOhms
@@ -1781,7 +1559,7 @@ DoEvents
 
 'connect GND to stc
 
-    SwitchSTCGndMeas
+    RouteDMM "STCGnd"
 
 'take reading
     GNDSTCReading = MeasureDigitalMultimeterOhms
@@ -1805,7 +1583,7 @@ DoEvents
 
 DoEvents
     
-    SwitchSTCVout2Meas
+    RouteDMM "STCVout2"
 
 'take reading
     VOUT2STCReading = MeasureDigitalMultimeterOhms
@@ -1842,7 +1620,7 @@ DoEvents
         End If
     End If
 
-    SwitchVout2Meas
+    RouteDMM "Vout2"
 
 'Take vout2 reading
         Vout2Reading = MeasureDigitalMultimeterVolts
@@ -2371,7 +2149,7 @@ Public Sub TestSTC()
 'connect VS to stc
     SetPSU2 0
     
-    SwitchSTCVsMeas
+    RouteDMM "STCVs"
 
 'take reading
     VSSTCReading = MeasureDigitalMultimeterOhms
@@ -2391,7 +2169,7 @@ DoEvents
 
 'connect GND to stc
 
-    SwitchSTCGndMeas
+    RouteDMM "STCGnd"
         
 'take reading
     GNDSTCReading = MeasureDigitalMultimeterOhms
@@ -2409,7 +2187,7 @@ DoEvents
 DoEvents
 'connect Vout1 to stc
 
-    SwitchSTCVout1Meas
+    RouteDMM "STCVout1"
         
 'take reading
     VOUT1STCReading = MeasureDigitalMultimeterOhms
@@ -2429,7 +2207,7 @@ DoEvents
 
 'connect Vout2 to stc
 
-    SwitchSTCVout2Meas
+    RouteDMM "STCVout2"
         
 'take reading
     VOUT2STCReading = MeasureDigitalMultimeterOhms
@@ -2458,7 +2236,7 @@ Public Sub TestSTC2()
     
     SetPSU2 0
     
-    SwitchSTCVsMeas
+    RouteDMM "STCVs"
 
 'take reading
     VSSTCReading = MeasureDigitalMultimeterOhms
@@ -2478,7 +2256,7 @@ DoEvents
 
 'connect GND to stc
 
-    SwitchSTCGndMeas
+    RouteDMM "STCGnd"
 
 'take reading
     
@@ -2497,7 +2275,7 @@ DoEvents
 DoEvents
 'connect Vout1 to stc
 
-    SwitchSTCVout1Meas
+    RouteDMM "STCVout1"
     
 'take reading
     
@@ -2518,7 +2296,7 @@ DoEvents
 
 'connect Vout2 to stc
 
-    SwitchSTCVout2Meas
+    RouteDMM "STCVout2"
 
 'take reading
     
@@ -2545,7 +2323,7 @@ Public Sub TestVout1and2()
 
 'Connect to vout 1
     SetPSU2 24
-    SwitchVout1Meas
+    RouteDMM "Vout1"
 
     Vout1Reading = MeasureDigitalMultimeterVolts
 
@@ -2564,7 +2342,7 @@ Public Sub TestVout1and2()
 'Connect to vout 2
 
 
-    SwitchVout2Meas
+    RouteDMM "Vout2"
 
     Vout2Reading = MeasureDigitalMultimeterVolts
 

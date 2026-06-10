@@ -33,857 +33,285 @@ Public Sub InitialiseDMM()
         SendDMMCommand "*IDN?"
         
 End Sub
+
 Public Function MeasureDigitalMultimeterVolts() As Double
-    Dim Reply As String
-    
-        SendDMMCommand ":FUNC 'VOLTAGE:DC'"
-        SendDMMCommand ":VOLTAGE:DC:RANGE:AUTO 1"
-        SendDMMCommand "READ?"
-        Reply = ReceiveDMMReply()
-        MeasureDigitalMultimeterVolts = Val(Reply)
-        
+    MeasureDigitalMultimeterVolts = MeasureDMM("Volts")
 End Function
+
 Public Function MeasureDigitalMultimeterAmps() As Double
-    Dim Reply As String
-   
-        SendDMMCommand ":FUNC 'CURRENT:DC'"
-        SendDMMCommand ":CURRENT:DC:RANGE:AUTO 1"
-        SendDMMCommand "READ?"
-        Reply = ReceiveDMMReply()
-        MeasureDigitalMultimeterAmps = Val(Reply)
-        
+    MeasureDigitalMultimeterAmps = MeasureDMM("Amps")
 End Function
+
 Public Function MeasureDigitalMultimeterOhms() As Double
-    Dim Reply As String
-     
-        SendDMMCommand ":FUNC 'RES'"
-        SendDMMCommand ":SENS:RES:NPLC 1"
-        SendDMMCommand ":SENS:RES:RANG:AUTO ON"
-        SendDMMCommand "READ?"
-        Reply = ReceiveDMMReply()
-        MeasureDigitalMultimeterOhms = Val(Reply)
-        
-      
+    MeasureDigitalMultimeterOhms = MeasureDMM("Ohms")
 End Function
+
 Public Function MeasureTemp() As Double
+    MeasureTemp = MeasureDMM("Temp")
+End Function
+
+Public Sub RouteDMMByPath(ByVal Path As String)
+    OpenAllSwitches
+    Sleep Relay_Delay
+    SendDMMCommand ":ROUT:MULT:CLOS (@" & Path & ")"
+    Sleep Relay_Delay
+End Sub
+
+Public Sub RouteDMM(ByVal MeasType As String)
+    Dim Suffix As String
+    Suffix = ""
+    
+    If MeasType = "Vout2Sw" Then
+        If PinOutSwitch = "T" Or PinOutSwitch = "A" Or PinOutSwitch = "L" Or PinOutSwitch = "R" Then
+            Suffix = PinOutSwitch
+        Else
+            Exit Sub
+        End If
+    Else
+        If PinOutSwitch = "F" And (ConnectorType = "C1" Or ConnectorType = "C2") Then
+            Suffix = ""
+        Else
+            Select Case PinOutSwitch
+                Case "T": Suffix = ""
+                Case "Q": Suffix = "Q"
+                Case "M": Suffix = "M"
+                Case "Z": Suffix = "Z"
+                Case "A": Suffix = "A"
+                Case "W": Suffix = "W"
+                Case "L": Suffix = "L"
+                Case "N": Suffix = "N"
+                Case "F": Suffix = "F"
+                Case "X":
+                    If MeasType = "STCGnd" Then Suffix = "L"
+                Case "3":
+                    If MeasType = "Vout2" Then Suffix = "Q"
+            End Select
+        End If
+    End If
+    
+    Dim Path As String
+    Path = GetDMMRoutePath(MeasType & Suffix)
+    If Path <> "" Then
+        RouteDMMByPath Path
+    End If
+End Sub
+
+Private Function GetDMMRoutePath(ByVal Key As String) As String
+    Select Case Key
+        ' STCVs routes
+        Case "STCVs":     GetDMMRoutePath = "115,113,127"
+        Case "STCVsA":    GetDMMRoutePath = "115,113,127"
+        Case "STCVsQ":    GetDMMRoutePath = "115,113,135"
+        Case "STCVsM":    GetDMMRoutePath = "115,113,127"
+        Case "STCVsZ":    GetDMMRoutePath = "115,113,127"
+        Case "STCVsW":    GetDMMRoutePath = "115,113,135"
+        Case "STCVsL":    GetDMMRoutePath = "115,113,119"
+        Case "STCVsF":    GetDMMRoutePath = "115,113,127"
+        Case "STCVsC":    GetDMMRoutePath = "115,113,127"
+        Case "STCVs6":    GetDMMRoutePath = "115,113,135"
+        Case "STCVsN":    GetDMMRoutePath = "115,113,143"
+        Case "STCVsU":    GetDMMRoutePath = "115,113,119"
+        
+        ' STCGnd routes
+        Case "STCGnd":    GetDMMRoutePath = "115,113,119"
+        Case "STCGndA":   GetDMMRoutePath = "115,113,119"
+        Case "STCGndQ":   GetDMMRoutePath = "115,113,127"
+        Case "STCGndM":   GetDMMRoutePath = "115,113,135"
+        Case "STCGndZ":   GetDMMRoutePath = "115,113,135"
+        Case "STCGndW":   GetDMMRoutePath = "115,113,119"
+        Case "STCGndL":   GetDMMRoutePath = "115,113,127"
+        Case "STCGndF":   GetDMMRoutePath = "115,113,143"
+        Case "STCGndC":   GetDMMRoutePath = "115,113,143"
+        Case "STCGnd6":   GetDMMRoutePath = "115,113,127"
+        Case "STCGndN":   GetDMMRoutePath = "115,113,127"
+        Case "STCGndU":   GetDMMRoutePath = "115,113,135"
+        
+        ' STCVout1 routes
+        Case "STCVout1":  GetDMMRoutePath = "115,113,135"
+        Case "STCVout1A": GetDMMRoutePath = "115,113,143"
+        Case "STCVout1Q": GetDMMRoutePath = "115,113,143"
+        Case "STCVout1M": GetDMMRoutePath = "115,113,119"
+        Case "STCVout1Z": GetDMMRoutePath = "115,113,119"
+        Case "STCVout1W": GetDMMRoutePath = "115,113,127"
+        Case "STCVout1L": GetDMMRoutePath = "115,113,135"
+        Case "STCVout1F": GetDMMRoutePath = "115,113,135"
+        Case "STCVout1C": GetDMMRoutePath = "115,113,119"
+        Case "STCVout16": GetDMMRoutePath = "115,113,119"
+        Case "STCVout1N": GetDMMRoutePath = "115,113,135"
+        Case "STCVout1U": GetDMMRoutePath = "115,113,143"
+        
+        ' STCVout2 routes
+        Case "STCVout2":  GetDMMRoutePath = "115,113,143"
+        Case "STCVout2A": GetDMMRoutePath = "115,113,135"
+        Case "STCVout2Q": GetDMMRoutePath = "115,113,119"
+        Case "STCVout2M": GetDMMRoutePath = "115,113,143"
+        Case "STCVout2Z": GetDMMRoutePath = "115,113,143"
+        Case "STCVout2W": GetDMMRoutePath = "115,113,143"
+        Case "STCVout2L": GetDMMRoutePath = "115,113,143"
+        Case "STCVout2F": GetDMMRoutePath = "115,113,119"
+        Case "STCVout2C": GetDMMRoutePath = "115,113,135"
+        Case "STCVout26": GetDMMRoutePath = "115,113,143"
+        Case "STCVout2N": GetDMMRoutePath = "115,113,119"
+        
+        ' Current routes
+        Case "Current":   GetDMMRoutePath = "109,112,118,129"
+        Case "CurrentA":  GetDMMRoutePath = "109,112,118,129"
+        Case "CurrentQ":  GetDMMRoutePath = "109,112,126,137"
+        Case "CurrentM":  GetDMMRoutePath = "109,112,134,129"
+        Case "CurrentZ":  GetDMMRoutePath = "109,112,134,129"
+        Case "CurrentW":  GetDMMRoutePath = "109,112,118,137"
+        Case "CurrentL":  GetDMMRoutePath = "109,112,126,121"
+        Case "CurrentF":  GetDMMRoutePath = "109,112,129,142"
+        Case "CurrentC":  GetDMMRoutePath = "109,112,142,129"
+        Case "Current6":  GetDMMRoutePath = "109,112,126,137"
+        Case "CurrentN":  GetDMMRoutePath = "109,112,126,145"
+        Case "CurrentU":  GetDMMRoutePath = "109,112,134,121"
+        
+        ' Vout1 routes
+        Case "Vout1":     GetDMMRoutePath = "125,135,121,118"
+        Case "Vout1A":    GetDMMRoutePath = "125,143,121,118"
+        Case "Vout1Q":    GetDMMRoutePath = "133,143,129,126"
+        Case "Vout1M":    GetDMMRoutePath = "125,119,137,134"
+        Case "Vout1Z":    GetDMMRoutePath = "125,119,137,134"
+        Case "Vout1W":    GetDMMRoutePath = "133,127,121,118"
+        Case "Vout1L":    GetDMMRoutePath = "117,135,129,126"
+        Case "Vout1F":    GetDMMRoutePath = "125,135,145,142"
+        Case "Vout1C":    GetDMMRoutePath = "125,119,145,142"
+        Case "Vout16":    GetDMMRoutePath = "133,119,129,126"
+        Case "Vout1N":    GetDMMRoutePath = "141,135,129,126"
+        
+        ' Vout2 routes
+        Case "Vout2":     GetDMMRoutePath = "125,143,121,118"
+        Case "Vout2A":    GetDMMRoutePath = "125,135,121,118"
+        Case "Vout2Q":    GetDMMRoutePath = "133,119,129,126"
+        Case "Vout2M":    GetDMMRoutePath = "125,143,137,134"
+        Case "Vout2Z":    GetDMMRoutePath = "125,143,137,134"
+        Case "Vout2W":    GetDMMRoutePath = "133,143,121,118"
+        Case "Vout2L":    GetDMMRoutePath = "117,143,129,126"
+        Case "Vout2F":    GetDMMRoutePath = "125,119,145,142"
+        Case "Vout2C":    GetDMMRoutePath = "125,135,145,142"
+        Case "Vout26":    GetDMMRoutePath = "133,143,129,126"
+        Case "Vout2N":    GetDMMRoutePath = "133,143,129,126"
+        
+        ' Switch measurement routes
+        Case "Vout2SwT":  GetDMMRoutePath = "125,143,121,118,233"
+        Case "Vout2SwA":  GetDMMRoutePath = "125,135,121,118,233"
+        Case "Vout2SwL":  GetDMMRoutePath = "117,143,129,126,233"
+        Case "Vout2SwR":  GetDMMRoutePath = "117,135,129,126,233"
+        Case "Vout1SwA":  GetDMMRoutePath = "125,143,121,118,233"
+        
+        ' Named standalone switches
+        Case "PSUCheck":             GetDMMRoutePath = "101,103,110,113"
+        Case "SwitchToCheckPSUT":    GetDMMRoutePath = "135,118,121,233"
+        Case "SwitchToCheckPSUL":    GetDMMRoutePath = "135,126,129,233"
+        Case "SwitchToCheckPSUA":    GetDMMRoutePath = "143,118,121,233"
+        Case "SwitchToCheckPSUR":    GetDMMRoutePath = "143,126,129,233"
+        Case "SwitchPackOffsetMeas": GetDMMRoutePath = "125,118,137,143"
+        Case "SwitchTempMeas":       GetDMMRoutePath = "105,106,111,116"
+        Case "SwitchPackInsulation": GetDMMRoutePath = "115,113,143"
+        Case "SwitchDualVout1Meas":  GetDMMRoutePath = "126,129,117,143"
+        Case "SwitchDualVout2Meas":  GetDMMRoutePath = "126,129,117,135"
+        
+        Case Else: GetDMMRoutePath = ""
+    End Select
+End Function
+
+Public Function MeasureDMM(ByVal Mode As String) As Double
     Dim Reply As String
-    Dim ohms As Double
-    
-        Sleep Relay_Delay
-        SendDMMCommand ":FUNC 'RES'"
-        SendDMMCommand ":SENS:RES:NPLC 0.1"
-        SendDMMCommand ":SENS:RES:RANG 100"
-        SendDMMCommand "READ?"
-        Reply = ReceiveDMMReply()
-        ohms = Val(Reply) - 1.5
-        
-        MeasureTemp = 20 + (ohms - 107.8) / 0.382
-       
+    Select Case Mode
+        Case "Volts"
+            SendDMMCommand ":FUNC 'VOLTAGE:DC'"
+            SendDMMCommand ":VOLTAGE:DC:RANGE:AUTO 1"
+            SendDMMCommand "READ?"
+            Reply = ReceiveDMMReply()
+            MeasureDMM = Val(Reply)
+        Case "Amps"
+            SendDMMCommand ":FUNC 'CURRENT:DC'"
+            SendDMMCommand ":CURRENT:DC:RANGE:AUTO 1"
+            SendDMMCommand "READ?"
+            Reply = ReceiveDMMReply()
+            MeasureDMM = Val(Reply)
+        Case "Ohms"
+            SendDMMCommand ":FUNC 'RES'"
+            SendDMMCommand ":SENS:RES:NPLC 1"
+            SendDMMCommand ":SENS:RES:RANG:AUTO ON"
+            SendDMMCommand "READ?"
+            Reply = ReceiveDMMReply()
+            MeasureDMM = Val(Reply)
+        Case "Temp"
+            Dim ohms As Double
+            Sleep Relay_Delay
+            SendDMMCommand ":FUNC 'RES'"
+            SendDMMCommand ":SENS:RES:NPLC 0.1"
+            SendDMMCommand ":SENS:RES:RANG 100"
+            SendDMMCommand "READ?"
+            Reply = ReceiveDMMReply()
+            ohms = Val(Reply) - 1.5
+            MeasureDMM = 20 + (ohms - 107.8) / 0.382
+        Case Else
+            MeasureDMM = 0
+    End Select
 End Function
+
 Public Function CheckLoadOn() As Boolean
-
     Dim reading As Double
+    CheckLoadOn = False
     
-        CheckLoadOn = False
-
-' check gnd to vout1
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@102,105,135)"
-        Sleep Relay_Delay
-        reading = MeasureDigitalMultimeterOhms
-        If reading < 100000 Then
+    ' check gnd to vout1
+    RouteDMMByPath "102,105,135"
+    reading = MeasureDMM("Ohms")
+    If reading < 100000 Then
         CheckLoadOn = True
-        End If
-        
-'check VS to vout1
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,127,137)"
-        Sleep Relay_Delay
-        reading = MeasureDigitalMultimeterOhms
-        If reading < 100000 Then
-        CheckLoadOn = True
-        End If
-           
-End Function
-Public Function PSUCheck() ' 5V accuracy check
-       
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@101,103,110,113)"
-        Sleep Relay_Delay
-   
-End Function
-Public Function SwitchToCheckPSUT()
-       
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@135,118,121,233)"
-        Sleep Relay_Delay
-   
-End Function
-Public Function SwitchToCheckPSUL()
-       
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@135,126,129,233)"
-        Sleep Relay_Delay
+    End If
     
+    ' check VS to vout1
+    RouteDMMByPath "125,127,137"
+    reading = MeasureDMM("Ohms")
+    If reading < 100000 Then
+        CheckLoadOn = True
+    End If
 End Function
-Public Function SwitchToCheckPSUA()
-       
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@143,118,121,233)"
-        Sleep Relay_Delay
-        
+
+Public Function PSUCheck() As Double
+    RouteDMMByPath "101,103,110,113"
 End Function
-Public Function SwitchToCheckPSUR()
-       
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@143,126,129,233)"
-        Sleep Relay_Delay
-        
+
+Public Function SwitchToCheckPSUT() As Double
+    RouteDMMByPath "135,118,121,233"
 End Function
+
+Public Function SwitchToCheckPSUL() As Double
+    RouteDMMByPath "135,126,129,233"
+End Function
+
+Public Function SwitchToCheckPSUA() As Double
+    RouteDMMByPath "143,118,121,233"
+End Function
+
+Public Function SwitchToCheckPSUR() As Double
+    RouteDMMByPath "143,126,129,233"
+End Function
+
 Public Function SwitchPackOffsetMeas() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,118,137,143)"
-        Sleep Relay_Delay
-                
+    RouteDMMByPath "125,118,137,143"
 End Function
+
 Public Function SwitchTempMeas() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@105,106,111,116)"
-        Sleep Relay_Delay
-                
-End Function
-Public Function SwitchCurrentMeas() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@109,112,118,129)"
-        Sleep Relay_Delay
-        
-End Function
-Public Function SwitchCurrentMeasA() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@109,112,118,129)"
-        Sleep Relay_Delay
-        
-End Function
-Public Function SwitchCurrentMeasQ() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@109,112,126,137)"
-        Sleep Relay_Delay
-        
-End Function
-Public Function SwitchCurrentMeasM() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@109,112,134,129)"
-        Sleep Relay_Delay
-        
-End Function
-Public Function SwitchCurrentMeasZ() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@109,112,134,129)"
-        Sleep Relay_Delay
-        
-End Function
-Public Function SwitchCurrentMeasW() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@109,112,118,137)"
-        Sleep Relay_Delay
-        
-End Function
-Public Function SwitchCurrentMeasL() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@109,112,126,121)"
-        Sleep Relay_Delay
-        
-End Function
-Public Function SwitchCurrentMeasF() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@109,112,129,142)"
-        Sleep Relay_Delay
-        
-End Function
-Public Function SwitchCurrentMeasC() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@109,112,142,129)"
-        Sleep Relay_Delay
-        
-End Function
-Public Function SwitchCurrentMeas6() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@109,112,126,137)"
-        Sleep Relay_Delay
-        
-End Function
-Public Function SwitchCurrentMeasN() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@109,112,126,145)"
-        Sleep Relay_Delay
-        
-End Function
-Public Function SwitchCurrentMeasU() As Double 'added by DW 17/11/23
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@109,112,134,121)"
-        Sleep Relay_Delay
-        
+    RouteDMMByPath "105,106,111,116"
 End Function
 
-Public Function SwitchVout1Meas() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,135,121,118)"
-        Sleep Relay_Delay
-                 
-End Function
-Public Function SwitchVout1MeasA() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,143,121,118)"
-        Sleep Relay_Delay
-                 
-End Function
-Public Function SwitchVout1MeasQ() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@133,143,129,126)"
-        Sleep Relay_Delay
-                 
-End Function
-Public Function SwitchVout1MeasM() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,119,137,134)"
-        Sleep Relay_Delay
-                 
-End Function
-Public Function SwitchVout1MeasZ() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,119,137,134)"
-        Sleep Relay_Delay
-                 
-End Function
-Public Function SwitchVout1MeasW() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@133,127,121,118)"
-        Sleep Relay_Delay
-                 
-End Function
-Public Function SwitchVout1MeasL() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@117,135,129,126)"
-        Sleep Relay_Delay
-                 
-End Function
-Public Function SwitchVout1MeasF() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,135,145,142)"
-        Sleep Relay_Delay
-                 
-End Function
-Public Function SwitchVout1MeasC() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,119,145,142)"
-        Sleep Relay_Delay
-                 
-End Function
-Public Function SwitchVout1Meas6() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@133,119,129,126)"
-        Sleep Relay_Delay
-                 
-End Function
-Public Function SwitchVout1MeasN() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@141,135,129,126)"
-        Sleep Relay_Delay
-                 
-End Function
-Public Function SwitchDualVout1Meas() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@126,129,117,143)"
-        Sleep Relay_Delay
-                 
-End Function
-Public Function SwitchDualVout2Meas() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@126,129,117,135)"
-        Sleep Relay_Delay
-                 
-End Function
-Public Function SwitchVout2Meas() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,143,121,118)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout2MeasA() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,135,121,118)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout2MeasQ() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@133,119,129,126)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout2MeasM() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,143,137,134)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout2MeasZ() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,143,137,134)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout2MeasW() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@133,143,121,118)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout2MeasL() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@117,143,129,126)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout2MeasF() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,119,145,142)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout2MeasC() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,135,145,142)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout2Meas6() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@133,143,129,126)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout2MeasN() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@133,143,129,126)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout2SwMeasT() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,143,121,118,233)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout1SwMeasA() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,143,121,118,233)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout2SwMeasA() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@125,135,121,118,233)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout2SwMeasL() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@117,143,129,126,233)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchVout2SwMeasR() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@117,135,129,126,233)"
-        Sleep Relay_Delay
-             
-End Function
-Public Function SwitchSTCVsMeas() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,127)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVsMeasA() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,127)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVsMeasQ() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,135)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVsMeasM() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,127)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVsMeasZ() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,127)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVsMeasW() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,135)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVsMeasL() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,119)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVsMeasF() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,127)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVsMeasC() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,127)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVsMeas6() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,135)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVsMeasN() As Double
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,143)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVsMeasU() As Double 'added by DW 17/11/23
-
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,119)"
-        Sleep Relay_Delay
-               
-End Function
-
-Public Function SwitchSTCGndMeas() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,119)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCGndMeasA() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,119)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCGndMeasQ() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,127)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCGndMeasM() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,135)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCGndMeasZ() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,135)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCGndMeasW() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,119)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCGndMeasL() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,127)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCGndMeasF() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,143)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCGndMeasC() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,143)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCGndMeas6() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,127)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCGndMeasN() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,127)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCGndMeasU() As Double 'added by DW 17/11/23
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,135)"
-        Sleep Relay_Delay
-               
-End Function
-
-Public Function SwitchSTCVout1Meas() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,135)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout1MeasA() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,143)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout1MeasQ() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,143)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout1MeasM() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,119)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout1MeasZ() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,119)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout1MeasW() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,127)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout1MeasL() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,135)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout1MeasF() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,135)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout1MeasC() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,119)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout1Meas6() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,119)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout1MeasN() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,135)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout1MeasU() As Double 'added by DW 17/11/23
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,143)"
-        Sleep Relay_Delay
-               
-End Function
-
-Public Function SwitchSTCVout2Meas() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,143)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout2MeasA() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,135)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout2MeasQ() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,119)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout2MeasM() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,143)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout2MeasZ() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,143)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout2MeasW() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,143)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout2MeasL() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,143)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout2MeasF() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,119)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout2MeasC() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,135)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout2Meas6() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,143)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function SwitchSTCVout2MeasN() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,119)"
-        Sleep Relay_Delay
-               
-End Function
 Public Function SwitchPackInsulation() As Double
-   
-        OpenAllSwitches
-        Sleep Relay_Delay
-        SendDMMCommand ":ROUT:MULT:CLOS (@115,113,143)"
-        Sleep Relay_Delay
-               
-End Function
-Public Function OpenAllSwitches() As Double
-   
-        SendDMMCommand ":ROUT:OPEN:ALL"
-              
+    RouteDMMByPath "115,113,143"
 End Function
 
+Public Function SwitchDualVout1Meas() As Double
+    RouteDMMByPath "126,129,117,143"
+End Function
+
+Public Function SwitchDualVout2Meas() As Double
+    RouteDMMByPath "126,129,117,135"
+End Function
+
+Public Function OpenAllSwitches() As Double
+    SendDMMCommand ":ROUT:OPEN:ALL"
+End Function
