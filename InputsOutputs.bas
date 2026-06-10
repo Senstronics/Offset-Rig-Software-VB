@@ -17,7 +17,6 @@ Public Sub CheckInputs()
 
   Dim Result As Integer
   Dim di_data As Long
-  Dim i As Integer
   Dim p As Integer
   Dim Port As Integer
   
@@ -29,28 +28,24 @@ Public Sub CheckInputs()
     Else
         
         Result = DI_ReadPort(card, Port, di_data)
-        For i = 0 To 7
+        
+        ' Decode the lowest bit (Bit 0) representing Interlock Status.
+        ' Historically, this was written as a loop "For i = 0 To 7" with nested
+        ' conditionals that rendered the check on bit 1+ unreachable.
+        ' To safely clean this without altering runtime behavior, we extract
+        ' the Bit 0 check directly and remove the dead loop structure.
         p = di_data Mod 2
-        If i = 0 Then
-           
+        
         If p = 0 Then
-           ' MainForm.InterlockStatusLabel = " Open"
             IsInterlockClosed = False
             ReadyFlag = True
         Else 'p = 1
-           ' MainForm.InterlockStatusLabel = " Closed"
             IsInterlockClosed = True
-                If ReadyFlag = True And DetailChecked = True Then
-                    ReadyFlag = False
-                    START
-                   ElseIf i = 1 Then
-               End If
+            If ReadyFlag = True And DetailChecked = True Then
+                ReadyFlag = False
+                START
             End If
-           
-          End If
-
-            di_data = CInt(Int(di_data / 2))
-        Next
+        End If
         
     End If
 
