@@ -1,3 +1,8 @@
+Version v1.0.37 - 2026-06-11 11:53
+========================================
+* Fix form version title caption displaying stale V34, sync window title bar, and clean design-time defaults (a61f91f)
+* Fix sync script to preserve active project settings from Project1.twinproj (581cb99)
+
 Version v1.0.36 - 2026-06-11 11:41
 ========================================
 * Implement Developer Mode hardware mocks and simulation (698af82)
