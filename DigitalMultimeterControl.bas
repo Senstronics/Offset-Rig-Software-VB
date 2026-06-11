@@ -2,6 +2,7 @@ Attribute VB_Name = "DigitalMultimeterControl"
 Option Explicit
 Public Const PortNumber As Integer = 16
 Public Sub SendDMMCommand(ByVal Command As String)
+    If DevMode Then Exit Sub
     Dim Status As Integer
 
     send PortNumber, Command, Status
@@ -9,6 +10,10 @@ Public Sub SendDMMCommand(ByVal Command As String)
 End Sub
 Public Function ReceiveDMMReply() As String
   'Read DMM status and report IEEE status in stat%
+    If DevMode Then
+        ReceiveDMMReply = "0.0"
+        Exit Function
+    End If
     Dim Status As Integer
     Dim l As Integer
     Dim Reply As String
@@ -23,6 +28,7 @@ End Function
 ' types can be run at the same time with the measurments potentially interleaved
 '
 Public Sub InitialiseDMM()
+    If DevMode Then Exit Sub
   
   Dim Reply As String
   
@@ -218,6 +224,26 @@ End Function
 
 Public Function MeasureDMM(ByVal Mode As String) As Double
     Dim Reply As String
+    
+    If DevMode Then
+        Select Case Mode
+            Case "Volts"
+                Dim midVal As Double
+                midVal = (Val(MainForm.LowerLimitDisplay) + Val(MainForm.UpperLimitDisplay)) / 2
+                If midVal = 0 Then midVal = 5#
+                MeasureDMM = midVal
+            Case "Amps"
+                MeasureDMM = 3.5
+            Case "Ohms"
+                MeasureDMM = 107.8
+            Case "Temp"
+                MeasureDMM = 20.0
+            Case Else
+                MeasureDMM = 0
+        End Select
+        Exit Function
+    End If
+
     Select Case Mode
         Case "Volts"
             SendDMMCommand ":FUNC 'VOLTAGE:DC'"
@@ -313,5 +339,6 @@ Public Function SwitchDualVout2Meas() As Double
 End Function
 
 Public Function OpenAllSwitches() As Double
+    If DevMode Then Exit Function
     SendDMMCommand ":ROUT:OPEN:ALL"
 End Function

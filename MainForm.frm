@@ -2160,6 +2160,15 @@ Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
         
         Outputs.Show
         
+    Case vbKeyF2
+        If DevMode Then
+            If DetailChecked = True Then
+                START
+            Else
+                MsgBox "Please scan or enter Works Order and Barcodes first (DetailChecked must be True)."
+            End If
+        End If
+        
     End Select
 
 End Sub

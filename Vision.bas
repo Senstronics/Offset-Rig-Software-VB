@@ -2,15 +2,15 @@ Attribute VB_Name = "Vision"
 Option Explicit
 
 Public Sub SendvisionCommand(ByVal Command As String)
-    
-      MainForm.VisionComm.Output = Command & vbCr
+    If DevMode Then Exit Sub
+    MainForm.VisionComm.Output = Command & vbCr
     
 End Sub
 Public Sub InitialiseVision()
-
-        MainForm.VisionComm.PortOpen = True
-        SendvisionCommand "R0"
-        SendvisionCommand "T1"
+    If DevMode Then Exit Sub
+    MainForm.VisionComm.PortOpen = True
+    SendvisionCommand "R0"
+    SendvisionCommand "T1"
 
 End Sub
 Public Sub ChangeVisionProgram(ProgramNumber)
@@ -19,6 +19,17 @@ Public Sub ChangeVisionProgram(ProgramNumber)
     
 End Sub
 Public Sub RecieveVision()
+    If DevMode Then
+        MainForm.OringPass.Visible = True
+        ORingResult = True
+        MainForm.RestrictorPass.Visible = True
+        RestrictorResult = True
+        MainForm.RestrictorWeldedPass.Visible = True
+        RestrictorWelded = True
+        MainForm.UnionPass.Visible = True
+        CorrectUnion = True
+        Exit Sub
+    End If
   
     Dim Reply As String
     Dim T1Reply As String

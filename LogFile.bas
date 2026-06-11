@@ -9,6 +9,7 @@ Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 
 Public Const CompileVersion As String = "v1.0.35"
 Public UpdateNetworkPath As String
+Public DevMode As Boolean
 
 Public PSU_Visa_ID As String
 Public Temp_Cal_Offset As Double
@@ -642,6 +643,7 @@ Public Sub LoadOffsetConfig()
     SoundCompletePath = "C:\offset setup files\complete.wav"
     SoundFailedPath = "C:\offset setup files\failed.wav"
     UpdateNetworkPath = "Q:\SENSTRONICS\CONTROLLED MACHINE SOFTWARE\Offset Rig Software VB"
+    DevMode = False
 
     FileName = App.Path & "\offset_config.txt"
 
@@ -708,6 +710,8 @@ Public Sub LoadOffsetConfig()
                     SoundFailedPath = value
                 ElseIf key = "update_network_path" Then
                     UpdateNetworkPath = value
+                ElseIf key = "dev_mode" Then
+                    DevMode = (value = "1" Or LCase$(value) = "true")
                 End If
             End If
         End If
