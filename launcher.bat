@@ -1,0 +1,3 @@
+@echo off
+title Launching Offset Rig Software...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0LaunchOffsetCheck.ps1"

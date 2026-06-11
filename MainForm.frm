@@ -2137,15 +2137,15 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Private Sub ClearDownButton_Click()
+    CheckForUpdates
 
-Dim WshShell As Object
- 
-Set WshShell = CreateObject("WScript.Shell")
- 
+    Dim WshShell As Object
+     
+    Set WshShell = CreateObject("WScript.Shell")
+     
     ClearDown
     DetailChecked = False
     WshShell.SendKeys "{Tab}"
-
 End Sub
 Private Sub Command3_Click()
 
@@ -2258,7 +2258,7 @@ If OffsetType = 1 Then
     OffsetOnly = False
     Post25DayTest = False
     Retests = False
-    TitleLabel.Caption = "POST CALIBRATION OFFSET CHECKER V34"
+    TitleLabel.Caption = "POST CALIBRATION OFFSET CHECKER " & CompileVersion
     Vout1OriginalOutputLabel.Visible = False
     Vout1OriginalOutputDisplay.Visible = False
     VoutDiffLabel.Visible = False
@@ -2273,7 +2273,7 @@ ElseIf OffsetType = 2 Then
     Post25DayTest = True
     Retests = False
     MainForm.BackColor = &H80C0FF
-    TitleLabel.Caption = "POST 25 Day HOLD CHECK V34"
+    TitleLabel.Caption = "POST 25 Day HOLD CHECK " & CompileVersion
     Vout1OriginalOutputLabel.Visible = True
     Vout1OriginalOutputDisplay.Visible = True
     VoutDiffLabel.Visible = True
@@ -2288,7 +2288,7 @@ ElseIf OffsetType = 3 Then
     Post25DayTest = False
     Retests = False
     MainForm.BackColor = &H8080FF
-    TitleLabel.Caption = "0.4% RETEST SCRAP OFFSET CHECKER V34"
+    TitleLabel.Caption = "0.4% RETEST SCRAP OFFSET CHECKER " & CompileVersion
     Vout1OriginalOutputLabel.Visible = False
     Vout1OriginalOutputDisplay.Visible = False
     VoutDiffLabel.Visible = False

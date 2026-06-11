@@ -7,6 +7,9 @@ Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 #End If
 
+Public Const CompileVersion As String = "v1.0.35"
+Public UpdateNetworkPath As String
+
 Public PSU_Visa_ID As String
 Public Temp_Cal_Offset As Double
 Public Relay_Delay As Long
@@ -638,6 +641,7 @@ Public Sub LoadOffsetConfig()
     LabelPrintBatchPath = "C:\liveorders\PrintLabel.bat"
     SoundCompletePath = "C:\offset setup files\complete.wav"
     SoundFailedPath = "C:\offset setup files\failed.wav"
+    UpdateNetworkPath = "Q:\SENSTRONICS\CONTROLLED MACHINE SOFTWARE\Offset Rig Software VB"
 
     FileName = App.Path & "\offset_config.txt"
 
@@ -702,6 +706,8 @@ Public Sub LoadOffsetConfig()
                     SoundCompletePath = value
                 ElseIf key = "sound_failed_path" Then
                     SoundFailedPath = value
+                ElseIf key = "update_network_path" Then
+                    UpdateNetworkPath = value
                 End If
             End If
         End If
@@ -710,4 +716,37 @@ Public Sub LoadOffsetConfig()
 
 errhandler:
     MsgBox "Error reading offset_config.txt: " & Err.Description & ". Using default configuration."
+End Sub
+
+Public Sub CheckForUpdates()
+    Dim NetworkExe As String
+    Dim LocalExe As String
+    Dim FSO As Object
+    Dim UpdateExists As Boolean
+    
+    NetworkExe = UpdateNetworkPath & "\OffsetCheck.exe"
+    LocalExe = App.Path & "\" & App.EXEName & ".exe"
+    
+    On Error GoTo errhandler
+    
+    Set FSO = CreateObject("Scripting.FileSystemObject")
+    
+    If FSO.FileExists(NetworkExe) Then
+        If FSO.GetFile(NetworkExe).DateLastModified > FSO.GetFile(LocalExe).DateLastModified Then
+            UpdateExists = True
+        End If
+    End If
+    
+    If UpdateExists Then
+        MsgBox "A newer version of the software is available on the network." & vbCrLf & _
+               "The application will now close to install updates." & vbCrLf & _
+               "Please relaunch using the desktop launcher icon.", vbInformation + vbOKOnly, "Update Available"
+        Unload MainForm
+        End
+    End If
+    Exit Sub
+    
+errhandler:
+    ' Gracefully skip if network is disconnected
+    Exit Sub
 End Sub

@@ -34,6 +34,7 @@ The core goal of this project is two-fold:
 *   **🌍 Configuration-Driven Paths:** Abstracted all local and network file paths into configuration parameters loaded from `offset_config.txt` with zero-config backward-compatible defaults.
 *   **🐛 Scanner Logic Nesting Bug Fix:** Corrected the nesting structure in the interlock scanner inside [InputsOutputs.bas](file:///c:/Users/lewis.heslop/Downloads/Offset%20Rig%20Software%20VB/InputsOutputs.bas) to enable monitoring of all hardware input bits.
 *   **🔒 Concurrency-Safe File Access:** Overhauled shared Excel sheet updates (`WorksOrder.xls`) and works order database scans (`paulseal.txt`) to implement interactive warning-based retry loops on failure. Configured network logging (`yyyymmdd.log`) to utilize silent retries with an automatic fallback to local backups to prevent data loss or operator interruption.
+*   **🏷️ Automated Versioning & Network Updates:** Removed hardcoded version strings from window titles. Implemented a dynamic compile-time version constant `CompileVersion` inside [LogFile.bas](file:///C:/Users/lewis.heslop/Downloads/Offset%20Rig%20Software%20VB/LogFile.bas). Created a PowerShell Network Launcher (`launcher.bat` and `LaunchOffsetCheck.ps1`) to check the network release share (`Q:`) and copy down new builds. Added update checking to `ClearDownButton_Click` to close the app if an update is available. Automated Git tagging, changelog compilation, and deployment via `release.py`.
 
 ---
 
@@ -44,10 +45,6 @@ We have identified several critical areas for improvement to be resolved in upco
 > [!NOTE]
 > **Database Consolidation Intent:**
 > In the future, we intend to consolidate the multiple separate text files currently used to store long-term rig databases (such as `Board Type.txt`, `union list.txt`, `connector type.txt`, `Colour list.txt`, and `cable list.txt`) into a single structured configuration or a shared SQLite database. Since these parameters are identical across all three physical Offset calibration stations, moving to a unified configuration source will simplify change management and ensure absolute data alignment across rigs.
-
-### 🏷️ A. Version Control & Release Management
-*   **The Issue:** Right now, versioning is arbitrary (indicated only by `"V34"` in the main form title and `"V34.1"` in the binary's filename).
-*   **The Plan:** Remove hardcoded version strings from the UI titles and filenames. Hide the active version string inside a Help/About menu. Version identifiers will correspond exactly to the **Git repository tags** under which the binaries are compiled.
 
 ### 🧹 B. Code Smells & Refactoring
 *   **Overcomplicated Barcode Parsing (`Barcode.bas`):** The parsing engine for works order sheet barcodes is excessively complex and brittle. It will be refactored into a clean, pattern-matching regex/substring scanner.

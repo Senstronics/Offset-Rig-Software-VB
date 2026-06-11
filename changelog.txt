@@ -1,0 +1,16 @@
+Version v1.0.35 - 2026-06-11 09:34
+========================================
+* Implement warning-based file retry and logging fallback handling (83b8ec6)
+* docs: clean up roadmap, backlog, and AI audit in readme.md (e0440c6)
+* refactor: externalize all hardcoded file and network server paths (fce69e8)
+* fix: resolve Excel COM process leaking and crash-prone automation error handlers (a37391a)
+* refactor: consolidate DMM switching redundancy and measurement logic (209f393)
+* refactor: simplify resistor value lookup using Line of Best Fit equation in CheckLoad (0e47077)
+* fix: add Option Explicit directives and declare all implicit variables (25d3e62)
+* fix: resolve logic nesting bug and dead code in interlock scanner (d38bc08)
+* docs: add AI Identified Issues section to readme (1fd0e2a)
+* Add pretty project readme.md (9613ef5)
+* Fix duplicate Dim i declarations in CableList and CableUsage (859fdac)
+* Fix duplicate Dim i As Long declarations in LogFile.bas (ad1c1a4)
+* Initial commit: Unified Offset Rig Software with configuration support (36b26ae)
+
