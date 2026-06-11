@@ -27,9 +27,14 @@ if (Test-Path $NetworkExe) {
         $NetworkDate = (Get-Item $NetworkExe).LastWriteTime
         $LocalDate = (Get-Item $LocalExe).LastWriteTime
         
-        if ($NetworkDate -gt $LocalDate) {
+        $LocalSize = (Get-Item $LocalExe).Length
+        if ($NetworkDate -gt $LocalDate -or $LocalSize -eq 0) {
             $UpdateRequired = $true
-            Write-Host "Network version is newer: $NetworkDate vs Local: $LocalDate"
+            if ($LocalSize -eq 0) {
+                Write-Host "Local executable is empty/corrupt. Re-downloading from network..."
+            } else {
+                Write-Host "Network version is newer: $NetworkDate vs Local: $LocalDate"
+            }
         } else {
             Write-Host "Local version is up to date."
         }
