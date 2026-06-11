@@ -30,9 +30,10 @@ The core goal of this project is two-fold:
 *   **Option Explicit Directives:** Enforced strict variable declaration compilation checks across all key modules, resolving dozens of implicit type compiler warnings.
 *   **Line of Best Fit Resistor Conversion:** Replaced the 1,000+ line hardcoded resistor mapping table with a single Line of Best Fit equation ($R^2 = 99.998\%$) in `CheckLoad()`.
 *   **🎚️ Consolidated DMM Switching:** Consolidated over 80 repetitive switching card functions in `DigitalMultimeterControl.bas` and removed massive duplicate `If PinOutSwitch = ...` blocks in `OffsetCheck.bas`, routing all relays through a single parameterized `RouteDMM` function.
-*   **🔒 Safe Excel COM Lifecycle:** Overhauled the Excel reporting parser to cleanly close workbooks and release reference counts in order, eliminating `excel.exe` process leaks.
+*   **Safe Excel COM Lifecycle:** Overhauled the Excel reporting parser to cleanly close workbooks and release reference counts in order, eliminating `excel.exe` process leaks.
 *   **🌍 Configuration-Driven Paths:** Abstracted all local and network file paths into configuration parameters loaded from `offset_config.txt` with zero-config backward-compatible defaults.
 *   **🐛 Scanner Logic Nesting Bug Fix:** Corrected the nesting structure in the interlock scanner inside [InputsOutputs.bas](file:///c:/Users/lewis.heslop/Downloads/Offset%20Rig%20Software%20VB/InputsOutputs.bas) to enable monitoring of all hardware input bits.
+*   **🔒 Concurrency-Safe File Access:** Overhauled shared Excel sheet updates (`WorksOrder.xls`) and works order database scans (`paulseal.txt`) to implement interactive warning-based retry loops on failure. Configured network logging (`yyyymmdd.log`) to utilize silent retries with an automatic fallback to local backups to prevent data loss or operator interruption.
 
 ---
 
@@ -58,20 +59,17 @@ We have identified several critical areas for improvement to be resolved in upco
     *   Determine the most common test path and establish it as the default system behavior.
     *   Create a clean lookup dictionary of product range overrides to route non-standard products to their respective custom tests.
 
+### 📋 D. Network Logging Usefulness Review
+*   **The Issue:** The software logs rig telemetry and diagnostics to a daily shared network log file (`yyyymmdd.log`). However, there is no active usage or consumer identified for these log files.
+*   **The Plan:** Review the necessity and utility of this logging with engineering to decide whether it should be simplified, redirected, or decommissioned to save network and storage bandwidth.
+
 ---
 
 ## 🤖 AI-Identified Issues (Architectural & Code Quality Audit)
 
 During the codebase unification process, our AI static analysis tool audited the source files and identified several critical code quality and architectural vulnerabilities. The remaining unresolved issues are listed below:
 
-### 🔴 High Severity
 
-#### 1. Shared File Concurrency Vulnerabilities
-*   **Location:** [CSVFile.bas](file:///C:/Users/lewis.heslop/Downloads/Offset%20Rig%20Software%20VB/CSVFile.bas)
-*   **The Issue:** Rigs read and write to the same shared Excel sheets on the network (`\\USVR8\Results\Production\Offset Check Results\`) simultaneously.
-*   **Impact:** There is no concurrency protection, file lock checks, or retry logic. If two rigs write data at the exact same moment, the operation will crash with a `Permission Denied` runtime error, forcing the operator to click a MsgBox and abort the run.
-
----
 
 ### 🟡 Medium Severity
 

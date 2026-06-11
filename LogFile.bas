@@ -1,5 +1,12 @@
 Attribute VB_Name = "LogFile"
 Option Explicit
+
+#If VB7 Then
+Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+#Else
+Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+#End If
+
 Public PSU_Visa_ID As String
 Public Temp_Cal_Offset As Double
 Public Relay_Delay As Long
@@ -109,27 +116,38 @@ Public Function CreateCsfDirectoryStructureCDrive(ByVal CalibrationStartTime As 
 
 End Function
 Public Sub AddToHistoryLog(ByVal LogEntry As String)
-
     Dim LogFile As Integer
     Dim PathName As String
     Dim FileLine As String
-    
-    On Error GoTo errhandler
+    Dim Retries As Integer
+    Dim Success As Boolean
     
     PathName = GetLogFileName
-
-    LogFile = FreeFile
-    Open PathName For Append As #LogFile
-
     FileLine = Format$(Now, "ttttt") & vbTab & LogEntry
     
-    Print #LogFile, FileLine
+    Retries = 0
+    Success = False
     
-    Close #LogFile
-    Exit Sub
+    Do While Retries < 3 And Not Success
+        On Error GoTo errhandler_append
+        LogFile = FreeFile
+        Open PathName For Append As #LogFile
+        Print #LogFile, FileLine
+        Close #LogFile
+        Success = True
+        On Error GoTo 0
+    Loop
     
-errhandler:
+    If Not Success Then
+        ' Fallback to local CDrive log
+        AddToHistoryLogCDrive "[Network Log Failure] " & LogEntry
+    End If
     Exit Sub
+
+errhandler_append:
+    Retries = Retries + 1
+    Sleep 100
+    Resume
 End Sub
 Public Function CreateCsfDirectoryStructure(ByVal CalibrationStartTime As Date) As String
     Dim PathName As String

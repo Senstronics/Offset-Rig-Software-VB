@@ -123,19 +123,35 @@ Public Enum SensorStatusEnum
 End Enum
 
 Public SensorStatus(1 To 2000) As SensorStatusEnum  'increased from 800 by DW
-Public Function ReadLiveWorksOrderFile(ByVal FileName As String)
+Public Function ReadLiveWorksOrderFile(ByVal FileName As String) As Boolean
 
     Dim FileHandle As Integer
     Dim s As String
+    Dim Response As VbMsgBoxResult
         
+RetryOpen:
+    On Error GoTo errhandler
     FileHandle = FreeFile
     Open FileName For Input As #FileHandle
+    On Error GoTo 0
     
     While EOF(FileHandle) = False
         s = WOInputLine(FileHandle)
         ProcessLiveWorkOrdersFileLine s
     Wend
 
+    Close #FileHandle
+    ReadLiveWorksOrderFile = True
+    Exit Function
+
+errhandler:
+    Response = MsgBox("Error accessing Works Order database: " & FileName & vbCrLf & _
+                      Err.Description & vbCrLf & _
+                      "Please check network connection and click Retry, or Cancel to abort.", vbRetryCancel + vbCritical, "Works Order Database Error")
+    If Response = vbRetry Then
+        Resume RetryOpen
+    End If
+    ReadLiveWorksOrderFile = False
 End Function
 Public Function WOInputLine(ByVal FileHandle As Integer) As String
     WOInputLine = vbNullString

@@ -23,18 +23,23 @@ Public Function FindPODInExcelFile() As Boolean
     Dim xlApp As Excel.Application
     Dim xlBook As Excel.Workbook
     Dim xlSheet As Excel.Worksheet
+    Dim Response As VbMsgBoxResult
     
     Set xlApp = Nothing
     Set xlBook = Nothing
     Set xlSheet = Nothing
     
-    On Error GoTo errhandler
-    
     FilePath = ResultsPath
     FileName = FilePath & WorksOrder & ".xls"
     
     Set xlApp = New Excel.Application
+    
+RetryOpen:
+    On Error GoTo errhandler_open
     Set xlBook = xlApp.Workbooks.Open(FileName)
+    On Error GoTo 0
+    
+    On Error GoTo errhandler
     Set xlSheet = xlBook.Worksheets(1)
     
     If xlSheet.Cells(10, 2).Value = "1" Then
@@ -50,6 +55,13 @@ Public Function FindPODInExcelFile() As Boolean
     Set xlApp = Nothing
     Exit Function
 
+errhandler_open:
+    Response = MsgBox("Error accessing results sheet: " & FileName & vbCrLf & _
+                      "Ensure the file is not open elsewhere and click Retry, or Cancel to abort.", vbRetryCancel + vbExclamation, "File Access Error")
+    If Response = vbRetry Then
+        Resume RetryOpen
+    End If
+    
 errhandler:
     MsgBox "ERROR ACCESSING FILE"
     Set xlSheet = Nothing
@@ -78,18 +90,23 @@ Public Function FindResults()
     Dim TotalBad As Long
     Dim TotalParts As Long
     Dim PercentFail As String
+    Dim Response As VbMsgBoxResult
     
     Set xlApp = Nothing
     Set xlBook = Nothing
     Set xlSheet = Nothing
     
-    On Error GoTo errhandler
-    
     FilePath = ResultsPath
     FileName = FilePath & WorksOrder & ".xls"
     
     Set xlApp = New Excel.Application
+    
+RetryOpen:
+    On Error GoTo errhandler_open
     Set xlBook = xlApp.Workbooks.Open(FileName)
+    On Error GoTo 0
+    
+    On Error GoTo errhandler
     Set xlSheet = xlBook.Worksheets(1)
     
     MainForm.PassedBox = xlSheet.Cells(1, 2).Value
@@ -118,6 +135,13 @@ Public Function FindResults()
     Set xlApp = Nothing
     Exit Function
     
+errhandler_open:
+    Response = MsgBox("Error accessing results sheet: " & FileName & vbCrLf & _
+                      "Ensure the file is not open elsewhere and click Retry, or Cancel to abort.", vbRetryCancel + vbExclamation, "File Access Error")
+    If Response = vbRetry Then
+        Resume RetryOpen
+    End If
+    
 errhandler:
     MsgBox "ERROR ACCESSING FILE"
     Set xlSheet = Nothing
@@ -142,6 +166,7 @@ Public Sub CreateExcel()
     Dim xlBook As Excel.Workbook
     Dim xlSheet As Excel.Worksheet
     Dim i As Long
+    Dim Response As VbMsgBoxResult
     
     Set xlApp = Nothing
     Set xlBook = Nothing
@@ -205,7 +230,11 @@ Public Sub CreateExcel()
     xlSheet.Columns("A:P").HorizontalAlignment = xlCenter
     
     xlApp.DisplayAlerts = False
+    
+RetrySave:
+    On Error GoTo errhandler_save
     xlBook.SaveAs FileName:=FileName, FileFormat:=56
+    On Error GoTo 0
     
     Set xlSheet = Nothing
     xlBook.Close SaveChanges:=False
@@ -213,6 +242,13 @@ Public Sub CreateExcel()
     xlApp.Quit
     Set xlApp = Nothing
     Exit Sub
+    
+errhandler_save:
+    Response = MsgBox("Error saving newly created sheet: " & FileName & vbCrLf & _
+                      "Ensure the file is not locked/open and click Retry, or Cancel to abort.", vbRetryCancel + vbExclamation, "File Save Error")
+    If Response = vbRetry Then
+        Resume RetrySave
+    End If
     
 errhandler:
     MsgBox "ERROR CREATING EXCEL FILE"
@@ -242,18 +278,23 @@ Public Function Update25DayHoldResult() As Boolean
     Dim InitialResult As Variant
     Dim OffDif As Double
     Dim Vout1OriginalOutputDisplay As Variant
+    Dim Response As VbMsgBoxResult
     
     Set xlApp = Nothing
     Set xlBook = Nothing
     Set xlSheet = Nothing
     
-    On Error GoTo errhandler
-    
     FilePath = ResultsPath
     FileName = FilePath & WorksOrder & ".xls"
     
     Set xlApp = New Excel.Application
+    
+RetryOpen:
+    On Error GoTo errhandler_open
     Set xlBook = xlApp.Workbooks.Open(FileName)
+    On Error GoTo 0
+    
+    On Error GoTo errhandler
     Set xlSheet = xlBook.Worksheets(1)
     
     Transducer = MainForm.SensorID
@@ -282,7 +323,11 @@ Public Function Update25DayHoldResult() As Boolean
         End If
         
         xlApp.DisplayAlerts = False
+        
+RetrySave:
+        On Error GoTo errhandler_save
         xlBook.SaveAs FileName:=FileName, FileFormat:=56
+        On Error GoTo 0
     End If
     
     Set xlSheet = Nothing
@@ -292,8 +337,24 @@ Public Function Update25DayHoldResult() As Boolean
     Set xlApp = Nothing
     Exit Function
     
+errhandler_open:
+    Response = MsgBox("Error accessing results sheet: " & FileName & vbCrLf & _
+                      "Ensure the file is not open elsewhere and click Retry, or Cancel to abort.", vbRetryCancel + vbExclamation, "File Access Error")
+    If Response = vbRetry Then
+        Resume RetryOpen
+    End If
+    GoTo errhandler_silent
+    
+errhandler_save:
+    Response = MsgBox("Error saving results sheet: " & FileName & vbCrLf & _
+                      "Ensure the file is not locked/open and click Retry, or Cancel to abort.", vbRetryCancel + vbExclamation, "File Save Error")
+    If Response = vbRetry Then
+        Resume RetrySave
+    End If
+    
 errhandler:
     MsgBox " ERROR SAVING DATA TO FILE"
+errhandler_silent:
     Set xlSheet = Nothing
     If Not xlBook Is Nothing Then
         On Error Resume Next
@@ -328,19 +389,24 @@ Public Sub UpdateExcelWithIdResults()
     Dim OldReading As Variant
     Dim Column As Long
     Dim i As Integer
+    Dim MsgResponse As VbMsgBoxResult
     
     Set xlApp = Nothing
     Set xlBook = Nothing
     Set xlSheet = Nothing
-    
-    On Error GoTo errhandler
     
     FilePath = ResultsPath
     AddToHistoryLogCDrive "Open Excel"
     FileName = FilePath & WorksOrder & ".xls"
     
     Set xlApp = New Excel.Application
+    
+RetryOpen:
+    On Error GoTo errhandler_open
     Set xlBook = xlApp.Workbooks.Open(FileName)
+    On Error GoTo 0
+    
+    On Error GoTo errhandler
     Set xlSheet = xlBook.Worksheets(1)
     
     AddToHistoryLogCDrive "Input Data"
@@ -444,7 +510,11 @@ Public Sub UpdateExcelWithIdResults()
     
     AddToHistoryLogCDrive "Close Excel"
     xlApp.DisplayAlerts = False
+    
+RetrySave:
+    On Error GoTo errhandler_save
     xlBook.SaveAs FileName:=FileName, FileFormat:=56
+    On Error GoTo 0
     
     Set xlSheet = Nothing
     xlBook.Close SaveChanges:=False
@@ -456,8 +526,24 @@ Public Sub UpdateExcelWithIdResults()
     AddToHistoryLogCDrive "Waiting to exit sub"
     Exit Sub
     
+errhandler_open:
+    MsgResponse = MsgBox("Error accessing results sheet: " & FileName & vbCrLf & _
+                         "Ensure the file is not open elsewhere and click Retry, or Cancel to abort.", vbRetryCancel + vbExclamation, "File Access Error")
+    If MsgResponse = vbRetry Then
+        Resume RetryOpen
+    End If
+    GoTo errhandler_silent
+    
+errhandler_save:
+    MsgResponse = MsgBox("Error saving results sheet: " & FileName & vbCrLf & _
+                         "Ensure the file is not locked/open and click Retry, or Cancel to abort.", vbRetryCancel + vbExclamation, "File Save Error")
+    If MsgResponse = vbRetry Then
+        Resume RetrySave
+    End If
+    
 errhandler:
     MsgBox " ERROR SAVING DATA TO FILE"
+errhandler_silent:
     Set xlSheet = Nothing
     If Not xlBook Is Nothing Then
         On Error Resume Next
