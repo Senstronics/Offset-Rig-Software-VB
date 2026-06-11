@@ -6,6 +6,12 @@ This project represents the modernization, consolidation, and refactoring of leg
 
 ---
 
+## 🚀 Getting Started & Deployment
+
+If you are setting up a developer machine for the first time, deploying to a physical testing rig, or releasing a new software version, please refer to the **[Deployment Guide](deployment.md)**.
+
+---
+
 ## 📌 Project Purpose & Genesis
 
 ### Origin
