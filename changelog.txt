@@ -1,3 +1,8 @@
+Version v1.0.39 - 2026-06-11 12:23
+========================================
+* Update readme.md to link to deployment.md for first-time users (ddf8ae1)
+* Create deployment.md guide with setup steps and release instructions (0a4d698)
+
 Version v1.0.38 - 2026-06-11 12:12
 ========================================
 * Updated the position of the heading caption. (5da1973)
