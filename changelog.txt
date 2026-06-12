@@ -1,3 +1,7 @@
+Version v1.0.40 - 2026-06-12 09:39
+========================================
+* Updated Barcode.bas to something that is useful and replaced all inline barcode manipulation with calls to function in Barcode.bas. (500093d)
+
 Version v1.0.39 - 2026-06-11 12:23
 ========================================
 * Update readme.md to link to deployment.md for first-time users (ddf8ae1)
