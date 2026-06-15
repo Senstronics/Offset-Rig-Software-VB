@@ -34,7 +34,7 @@ Public Sub SetPSU2(Supply)
 'Transducer supply
     If DevMode Then Exit Sub
     Driver.OutputChannels.item("OutputChannel2").CurrentLimit = 0.01
-    Driver.OutputChannels.item("OutputChannel2").VoltageLevel = Supply * 0.986
+    Driver.OutputChannels.item("OutputChannel2").VoltageLevel = Supply * PSU_Ch2_Factor
     Driver.OutputChannels.item("OutputChannel2").State = True
     Sleep 100
         
@@ -45,7 +45,7 @@ Public Sub SetPSU3(Supply)
 'set current to 3mA
     If DevMode Then Exit Sub
     Driver.OutputChannels.item("OutputChannel3").CurrentLimit = 0.005
-    Driver.OutputChannels.item("OutputChannel3").VoltageLevel = Supply * 0.9645
+    Driver.OutputChannels.item("OutputChannel3").VoltageLevel = Supply * PSU_Ch3_Factor
     Driver.OutputChannels.item("OutputChannel3").State = True
     Sleep 200
         

@@ -14,6 +14,8 @@ Public DevMode As Boolean
 Public PSU_Visa_ID As String
 Public Temp_Cal_Offset As Double
 Public Relay_Delay As Long
+Public PSU_Ch2_Factor As Double
+Public PSU_Ch3_Factor As Double
 
 Public BoardTypePath As String
 Public UnionListPath As String
@@ -630,6 +632,8 @@ Public Sub LoadOffsetConfig()
     PSU_Visa_ID = "9103875"
     Temp_Cal_Offset = -5#
     Relay_Delay = 0
+    PSU_Ch2_Factor = 0.986
+    PSU_Ch3_Factor = 0.9645
     
     BoardTypePath = "C:\offset setup files\Board Type.txt"
     UnionListPath = "C:\offset setup files\union list.txt"
@@ -683,6 +687,10 @@ Public Sub LoadOffsetConfig()
                     Temp_Cal_Offset = Val(value)
                 ElseIf key = "relay_delay" Then
                     Relay_Delay = Val(value)
+                ElseIf key = "psu_ch2_factor" Then
+                    PSU_Ch2_Factor = Val(value)
+                ElseIf key = "psu_ch3_factor" Then
+                    PSU_Ch3_Factor = Val(value)
                 ElseIf key = "board_type_path" Then
                     BoardTypePath = value
                 ElseIf key = "union_list_path" Then
