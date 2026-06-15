@@ -1,3 +1,7 @@
+Version v1.0.41 - 2026-06-15 13:18
+========================================
+* Made PSU Calibration Constants configurable, with the original value as the default/fallback. (ab8f6a3)
+
 Version v1.0.40 - 2026-06-12 09:39
 ========================================
 * Updated Barcode.bas to something that is useful and replaced all inline barcode manipulation with calls to function in Barcode.bas. (500093d)
