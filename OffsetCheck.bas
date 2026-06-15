@@ -215,6 +215,7 @@ Public Function CheckDetails()
 
 Dim i As Integer
 Dim MyValue As String
+Dim HasRoute As Boolean
 
     WorksOrder = (Mid$(MainForm.WorksOrderBarcode, 5, 15))
     
@@ -248,7 +249,9 @@ Dim MyValue As String
     ParseFirstBarcode MainForm.FirstMCSBarcode
     ParseThirdBarcode MainForm.ThirdMCSBarcode
     
-    If Mid$(WorksOrder, 1, 2) = "UB" Or Mid$(WorksOrder, 1, 2) = "AM" Or Mid$(WorksOrder, 1, 2) = "ST" Or Mid$(WorksOrder, 1, 2) = "UC" Or Mid$(WorksOrder, 1, 2) = "Z0" Then
+    HasRoute = GetNonStandardProcessRoute(WorksOrder, CurrentRoute)
+    
+    If HasRoute And CurrentRoute.ProcessName = "PackOnly" Then
         PackOnly = True
     Else
         PackOnly = False
@@ -260,13 +263,8 @@ Dim MyValue As String
         MainForm.ClearDownForPackOnly
         MainForm.OffsetTargetDisplay = 0
         
-        If Mid$(MainForm.WorksOrderBarcode, 5, 2) = "UB" Or Mid$(MainForm.WorksOrderBarcode, 5, 2) = "AM" Then
-            MainForm.LowerLimitDisplay = -12
-            MainForm.UpperLimitDisplay = 12
-        Else
-            MainForm.LowerLimitDisplay = -10
-            MainForm.UpperLimitDisplay = 10
-        End If
+        MainForm.LowerLimitDisplay = -CurrentRoute.LimitVoltage
+        MainForm.UpperLimitDisplay = CurrentRoute.LimitVoltage
         
         MainForm.CurrentDisplay.Visible = True
         MainForm.CurrentLabel.Visible = True
@@ -306,7 +304,7 @@ Dim MyValue As String
         MainForm.ProgramDisplay = VisionProgram
         ChangeVisionProgram VisionProgram
         
-        If Mid$(WorksOrder, 1, 2) = "UC" Then
+        If PackOnly And CurrentRoute.RequireVerification Then
          
             If RestrictorReq Then
                 MainForm.RestrictorDisplay = "Yes"
@@ -979,23 +977,11 @@ Dim VSSTCReading As Double
     MainForm.VOUT1OutputDisplay = Format$(Vout1Reading, "0.000 " & "mv")
     
  
-    If Mid$(MainForm.WorksOrderBarcode, 5, 2) = "UB" Or Mid$(MainForm.WorksOrderBarcode, 5, 2) = "AM" Then
-        
-        If Abs(Vout1Reading) < 12 Then
-            MainForm.VOUT1PASS.Visible = True
-        Else
-            MainForm.VOUT1FAIL.Visible = True
-            SensorStatus(MainForm.SensorID) = FailedOffset1
-        End If
+    If Abs(Vout1Reading) < CurrentRoute.LimitVoltage Then
+        MainForm.VOUT1PASS.Visible = True
     Else
-    
-        If Abs(Vout1Reading) < 10 Then
-            MainForm.VOUT1PASS.Visible = True
-        Else
-            MainForm.VOUT1FAIL.Visible = True
-            SensorStatus(MainForm.SensorID) = FailedOffset1
-        End If
-    
+        MainForm.VOUT1FAIL.Visible = True
+        SensorStatus(MainForm.SensorID) = FailedOffset1
     End If
    
 ' read current

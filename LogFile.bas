@@ -42,6 +42,19 @@ End Type
 Public CurrentDrawOverrides() As CurrentDrawOverride
 Public NumberOfCurrentDrawOverrides As Integer
 
+Public NonStandardProcessesPath As String
+
+Public Type NonStandardProcessRoute
+    Prefix As String
+    ProcessName As String
+    LimitVoltage As Double
+    RequireVerification As Boolean
+End Type
+
+Public NonStandardProcesses() As NonStandardProcessRoute
+Public NumberOfNonStandardProcesses As Integer
+Public CurrentRoute As NonStandardProcessRoute
+
 Public UnionCode() As String
 Public ProgramNumber() As Integer
 Public OringCode() As String
@@ -642,6 +655,7 @@ Public Sub LoadOffsetConfig()
     CableListPath = "C:\offset setup files\cable list.txt"
     CableUsagePath = "C:\offset setup files\Cable Usage.txt"
     RigTypePath = "C:\offset setup files\Rig Type.txt"
+    NonStandardProcessesPath = "C:\offset setup files\non-standard_processes.txt"
     ResultsPath = "\\USVR8\Results\Production\Offset Check Results\"
     LocalResultsPath = "C:\My documents\Offset Check Results\"
     WorkOrderPath = "M:\paulseal.txt"
@@ -705,6 +719,8 @@ Public Sub LoadOffsetConfig()
                     CableUsagePath = value
                 ElseIf key = "rig_type_path" Then
                     RigTypePath = value
+                ElseIf key = "non_standard_processes_path" Then
+                    NonStandardProcessesPath = value
                 ElseIf key = "results_path" Then
                     ResultsPath = value
                 ElseIf key = "local_results_path" Then
@@ -727,11 +743,149 @@ Public Sub LoadOffsetConfig()
             End If
         End If
     Next LineIdx
+    LoadNonStandardProcesses
     Exit Sub
 
 errhandler:
     MsgBox "Error reading offset_config.txt: " & Err.Description & ". Using default configuration."
 End Sub
+
+Public Sub LoadNonStandardProcesses()
+    Dim FileHandle As Integer
+    Dim FileName As String
+    Dim fileContent As String
+    Dim lines() As String
+    Dim SplitValues() As String
+    Dim LineIdx As Long
+    Dim Count As Long
+    Dim s As String
+    
+    NumberOfNonStandardProcesses = 0
+    ReDim NonStandardProcesses(0)
+    
+    FileName = NonStandardProcessesPath
+    
+    ' If the file does not exist, use backward-compatible defaults and write the file if target dir exists
+    If Dir$(FileName) = "" Then
+        NumberOfNonStandardProcesses = 5
+        ReDim NonStandardProcesses(4)
+        
+        NonStandardProcesses(0).Prefix = "UB"
+        NonStandardProcesses(0).ProcessName = "PackOnly"
+        NonStandardProcesses(0).LimitVoltage = 12#
+        NonStandardProcesses(0).RequireVerification = False
+        
+        NonStandardProcesses(1).Prefix = "AM"
+        NonStandardProcesses(1).ProcessName = "PackOnly"
+        NonStandardProcesses(1).LimitVoltage = 12#
+        NonStandardProcesses(1).RequireVerification = False
+        
+        NonStandardProcesses(2).Prefix = "ST"
+        NonStandardProcesses(2).ProcessName = "PackOnly"
+        NonStandardProcesses(2).LimitVoltage = 10#
+        NonStandardProcesses(2).RequireVerification = False
+        
+        NonStandardProcesses(3).Prefix = "UC"
+        NonStandardProcesses(3).ProcessName = "PackOnly"
+        NonStandardProcesses(3).LimitVoltage = 10#
+        NonStandardProcesses(3).RequireVerification = True
+        
+        NonStandardProcesses(4).Prefix = "Z0"
+        NonStandardProcesses(4).ProcessName = "PackOnly"
+        NonStandardProcesses(4).LimitVoltage = 10#
+        NonStandardProcesses(4).RequireVerification = False
+        
+        ' Try to write the default configuration file if the directory exists
+        Dim DirPath As String
+        DirPath = "C:\offset setup files"
+        On Error Resume Next
+        If Dir$(DirPath, vbDirectory) <> "" Then
+            FileHandle = FreeFile
+            Open FileName For Output As #FileHandle
+            Print #FileHandle, "# Product range prefixes, processes, and parameters"
+            Print #FileHandle, "# Format: Prefix,ProcessName,LimitVoltage,RequireVerification"
+            Print #FileHandle, "UB,PackOnly,12,0"
+            Print #FileHandle, "AM,PackOnly,12,0"
+            Print #FileHandle, "ST,PackOnly,10,0"
+            Print #FileHandle, "UC,PackOnly,10,1"
+            Print #FileHandle, "Z0,PackOnly,10,0"
+            Close #FileHandle
+        End If
+        On Error GoTo 0
+        Exit Sub
+    End If
+    
+    On Error GoTo errhandler
+    FileHandle = FreeFile
+    Open FileName For Input As #FileHandle
+    
+    If LOF(FileHandle) > 0 Then
+        fileContent = Input(LOF(FileHandle), FileHandle)
+    Else
+        fileContent = ""
+    End If
+    Close #FileHandle
+    
+    fileContent = Replace(fileContent, vbCrLf, vbLf)
+    fileContent = Replace(fileContent, vbCr, vbLf)
+    
+    lines = Split(fileContent, vbLf)
+    
+    Count = 0
+    For LineIdx = 0 To UBound(lines)
+        s = Trim$(lines(LineIdx))
+        If s <> "" And Left$(s, 1) <> "#" And Left$(s, 1) <> ";" Then
+            SplitValues = Split(s, ",")
+            If UBound(SplitValues) >= 1 Then
+                ReDim Preserve NonStandardProcesses(Count)
+                NonStandardProcesses(Count).Prefix = Trim$(SplitValues(0))
+                NonStandardProcesses(Count).ProcessName = Trim$(SplitValues(1))
+                
+                ' Parse Limit Voltage (default to 10 if not provided or 0)
+                NonStandardProcesses(Count).LimitVoltage = 10#
+                If UBound(SplitValues) >= 2 Then
+                    If Val(Trim$(SplitValues(2))) > 0 Then
+                        NonStandardProcesses(Count).LimitVoltage = Val(Trim$(SplitValues(2)))
+                    End If
+                End If
+                
+                ' Parse Require Verification (default to False)
+                NonStandardProcesses(Count).RequireVerification = False
+                If UBound(SplitValues) >= 3 Then
+                    NonStandardProcesses(Count).RequireVerification = (Val(Trim$(SplitValues(3))) <> 0)
+                End If
+                
+                Count = Count + 1
+            End If
+        End If
+    Next LineIdx
+    
+    NumberOfNonStandardProcesses = Count
+    Exit Sub
+    
+errhandler:
+    If Not DevMode Then MsgBox "Error reading non-standard_processes.txt: " & Err.Description
+End Sub
+
+Public Function GetNonStandardProcessRoute(ByVal WorksOrder As String, ByRef OutRoute As NonStandardProcessRoute) As Boolean
+    Dim i As Long
+    Dim UpperWorksOrder As String
+    Dim PrefixLen As Long
+    
+    UpperWorksOrder = Trim$(UCase$(WorksOrder))
+    
+    For i = 0 To NumberOfNonStandardProcesses - 1
+        PrefixLen = Len(NonStandardProcesses(i).Prefix)
+        If PrefixLen > 0 Then
+            If Left$(UpperWorksOrder, PrefixLen) = UCase$(NonStandardProcesses(i).Prefix) Then
+                OutRoute = NonStandardProcesses(i)
+                GetNonStandardProcessRoute = True
+                Exit Function
+            End If
+        End If
+    Next i
+    GetNonStandardProcessRoute = False
+End Function
 
 Public Sub CheckForUpdates()
     Dim NetworkExe As String

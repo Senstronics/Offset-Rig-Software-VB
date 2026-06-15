@@ -6,9 +6,14 @@ This project represents the modernization, consolidation, and refactoring of leg
 
 ---
 
-## 🚀 Getting Started & Deployment
+## 🚀 Quick Start for New Users & Developers
 
-If you are setting up a developer machine for the first time, deploying to a physical testing rig, or releasing a new software version, please refer to the **[Deployment Guide](deployment.md)**.
+If you are new to the repository, setting up a developer workstation, or deploying to a physical testing rig, please follow these documentation guides:
+
+> [!IMPORTANT]
+> *   **[First-Time Developer Setup & Deployment Guide](deployment.md)** — Step-by-step instructions on setting up your environment, database files, and compiling/releasing the software.
+> *   **[Rig Configuration Guide (offset_config.txt)](configuration.md)** — Detailed reference for all configurable parameters, VISA device IDs, local/network path overrides, and simulated Developer Mode controls.
+> *   **[Product Process & Current Limits Setup Guide (process_setup.md)](process_setup.md)** — Detailed reference on routing non-standard products, setting offset limits, and configuring current draw overrides.
 
 ---
 
@@ -31,7 +36,7 @@ The core goal of this project is two-fold:
 
 *   **🎛️ Codebase Unification:** Consolidated three distinct, station-specific project directories into one repository. Station-specific hardware identifiers (VISA IDs), calibration constants, and timing delays have been abstracted into a single local config file: `offset_config.txt`.
 *   **🔌 Dynamic Current Draw Overrides:** Replaced duplicated hardcoded current limits with dynamic limits loaded from `current_draw.txt` on a per-product-range basis.
-*   **🔋 AM Product Range Exceptions:** Added exception rules for the new `"AM"` product line, mapping them dynamically to the existing `"UB"` product rules.
+*   **🗺️ Configuration-Driven Process Routing:** Replaced hardcoded EOL test routing rules (e.g. `PackOnly` checks) and custom voltage limit/verification overrides (like the special cases for `UB`, `AM`, and `UC`) with a fully dynamic configuration database file `non-standard_processes.txt`.
 *   **📂 Dynamic File Parsing:** Replaced the legacy fixed-length loops with modern `Do While Not EOF(FileHandle)` structures.
 *   **Option Explicit Directives:** Enforced strict variable declaration compilation checks across all key modules, resolving dozens of implicit type compiler warnings.
 *   **Line of Best Fit Resistor Conversion:** Replaced the 1,000+ line hardcoded resistor mapping table with a single Line of Best Fit equation ($R^2 = 99.998\%$) in `CheckLoad()`.
@@ -55,12 +60,6 @@ We have identified several critical areas for improvement to be resolved in upco
 ### 🧹 B. Code Smells & Refactoring
 *   **Overcomplicated Barcode Parsing (`Barcode.bas`):** The parsing engine for works order sheet barcodes is excessively complex and brittle. It will be refactored into a clean, pattern-matching regex/substring scanner.
 
-### 🗺️ C. Hardcoded Product Process Variations
-*   **The Issue:** Operators cannot easily tell which testing process a particular product range will follow because routing logic is hardcoded inside branching conditional statements.
-*   **The Plan:** 
-    *   Clearly define and document the possible EOL testing processes.
-    *   Determine the most common test path and establish it as the default system behavior.
-    *   Create a clean lookup dictionary of product range overrides to route non-standard products to their respective custom tests.
 
 ### 📋 D. Network Logging Usefulness Review
 *   **The Issue:** The software logs rig telemetry and diagnostics to a daily shared network log file (`yyyymmdd.log`). However, there is no active usage or consumer identified for these log files.
