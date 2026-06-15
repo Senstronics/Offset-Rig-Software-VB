@@ -1,6 +1,6 @@
 # 🛠️ Offset Rig Software VB
 
-Welcome to the unified repository for the **End-of-Line (EOL) check software** running on the physical "Offset" calibration/test stations in **Unit 3**. 
+Welcome to the unified repository for the **End-of-Line (EOL) check software** running on the physical "Offset" test stations in **Unit 3**. 
 
 This project represents the modernization, consolidation, and refactoring of legacy Visual Basic 6 (VB6) codebases migrated to the **twinBASIC** compiler ecosystem.
 
