@@ -1,0 +1,7 @@
+# Product range prefixes, processes, and parameters
+# Format: Prefix,ProcessName,LimitVoltage,RequireVerification
+UB,PackOnly,12,0
+AM,PackOnly,12,0
+ST,PackOnly,10,0
+UC,PackOnly,10,1
+Z0,PackOnly,10,0

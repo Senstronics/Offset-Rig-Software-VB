@@ -1,75 +1,46 @@
-# 🛠️ Product Process & current limits Setup Guide
+# 🛠️ Product Process & Current Limits Setup Guide
 
-This document explains how to configure EOL process routing, limit voltages, cable verifications, and transducer current draw limits on a per-product-range basis. 
+This document explains how to configure EOL process routing, limit voltages, cable verifications, and transducer current draw limits on a per-product-range basis.
 
-Rather than hardcoding product range exceptions in the source code, these parameters are managed dynamically via two lookup files:
-1. **`non-standard_processes.txt`** — Configures EOL routing pathways, voltage limits, and component scanning requirements.
-2. **`current_draw.txt`** — Overrides default current draw measurement acceptance windows.
-
----
-
-## 📄 1. Non-Standard Processes Routing (`non-standard_processes.txt`)
-
-This file routes specific product ranges to non-standard EOL check routines (e.g., bypassing full multi-point pressure calibration in favor of a single offset voltage verification).
-
-### File Location & Overrides
-* **Default Path:** `C:\offset setup files\non-standard_processes.txt`
-* **Custom Path Override:** Can be configured in `offset_config.txt` using the `non_standard_processes_path` parameter.
-
-### File Format
-* Standard comma-separated values (CSV) format.
-* Lines starting with `#` or `;` are treated as comments and ignored.
-* **Columns:** `Prefix,ProcessName,LimitVoltage,RequireVerification`
-
-### Column Descriptions
-
-| Column # | Parameter Name | Type | Description |
-| :--- | :--- | :--- | :--- |
-| 1 | **`Prefix`** | String | The works order product prefix matching the start of the scanned Works Order barcode (e.g. `UB`, `AM`, `UC`). Matching is case-insensitive and supports variable prefix lengths. |
-| 2 | **`ProcessName`** | String | The target test flow route. Currently supported process routes:<br>• **`PackOnly`**: Routes the sensor directly to the EOL voltage check (`PackTestOnly`), skipping multi-point calibration. |
-| 3 | **`LimitVoltage`** | Double | The EOL pass/fail window limit in millivolts (e.g. `12` or `10`). If set to `0` or omitted, defaults to `10`. |
-| 4 | **`RequireVerification`**| Boolean | Dictates if the operator must verify setup parts before testing:<br>• **`1` (True)**: Forces operator to scan cable, select connector type, and verify board setup (e.g. `UC` range).<br>• **`0` (False)**: Skips verification scans entirely (e.g. `UB`, `AM`). |
-
-### Default Production Configuration
-```text
-# Product range prefixes, processes, and parameters
-# Format: Prefix,ProcessName,LimitVoltage,RequireVerification
-UB,PackOnly,12,0
-AM,PackOnly,12,0
-ST,PackOnly,10,0
-UC,PackOnly,10,1
-Z0,PackOnly,10,0
-```
+All of these parameters are managed dynamically in the centralized SQLite database:
+* **SQLite Database Path:** `C:\ProgramData\Senstronics\OffsetRig\offset_setup.db`
+* **Target Table:** `product_ranges`
 
 ---
 
-## 🔌 2. Dynamic Current Draw Limits (`current_draw.txt`)
+## 🗄️ 1. Product Ranges Table (`product_ranges`)
 
-During calibration checks, the software measures the sensor's transducer supply current draw (in mA) to verify internal electronics are within bounds.
+Instead of hardcoding product range exceptions in the source code or using legacy flat files (`non-standard_processes.txt` and `current_draw.txt`), all product parameters are consolidated into the `product_ranges` table.
 
-### File Location
-* Must be placed in **the same directory as the executable file** (`OffsetCheck.exe`).
-* The path cannot be changed via `offset_config.txt`.
-
-### File Format
-* Comma-separated values (CSV) format.
-* Lines starting with `#` or `;` are comments and ignored.
-* **Columns:** `ProductRange,LowerLimit,UpperLimit`
-
-### Column Descriptions
-
-| Column # | Parameter Name | Type | Description |
-| :--- | :--- | :--- | :--- |
-| 1 | **`ProductRange`** | String | The 2-character product range prefix extracted from the Works Order (e.g. `UB`, `AM`, `UC`). |
-| 2 | **`LowerLimit`** | Double | Lower current draw threshold limit in milliamperes (mA). |
-| 3 | **`UpperLimit`** | Double | Upper current draw threshold limit in milliamperes (mA). |
-
-*If a product range is not found in this file, the software automatically falls back to default limits of **`2.0` mA (Lower)** and **`5.6` mA (Upper)**.*
-
-### Example Configuration
-```text
-# ProductRange, LowerLimit(mA), UpperLimit(mA)
-UB,1.8,5.4
-AM,1.8,5.4
-UC,2.2,6.0
+### Schema:
+```sql
+CREATE TABLE product_ranges (
+    prefix TEXT PRIMARY KEY,
+    process_name TEXT NOT NULL,
+    limit_voltage REAL DEFAULT 10.0,
+    require_verification INTEGER DEFAULT 0,
+    current_draw_lower REAL,
+    current_draw_upper REAL
+);
 ```
+
+### Column Descriptions:
+
+| Column Name | Data Type | Default / Fallback | Description |
+| :--- | :--- | :--- | :--- |
+| **`prefix`** | TEXT | *N/A (Primary Key)* | The product range prefix matching the start of the scanned Works Order barcode (e.g., `UB`, `AM`, `UC`, `ST`). Supports variable prefix lengths. |
+| **`process_name`** | TEXT | `"Standard"` | The target test flow route:<br>• **`PackOnly`**: Routes the sensor directly to the EOL voltage check (`PackTestOnly`), skipping multi-point calibration.<br>• **`Standard`**: Routes to the full test flow including multi-point calibration check. |
+| **`limit_voltage`** | REAL | `10.0` | The EOL pass/fail limit in volts. |
+| **`require_verification`**| INTEGER | `0` (False) | Dictates if the operator must verify setup parts before testing:<br>• **`1` (True)**: Forces operator to scan cable, select connector type, and verify board setup (e.g., `UC` range).<br>• **`0` (False)**: Skips verification scans entirely (e.g., `UB`, `AM`). |
+| **`current_draw_lower`** | REAL | `2.0` (mA) | The lower current draw threshold in milliamperes. If set to `NULL` (database NULL), falls back to `2.0` mA. |
+| **`current_draw_upper`** | REAL | `5.6` (mA) | The upper current draw threshold in milliamperes. If set to `NULL` (database NULL), falls back to `5.6` mA. |
+
+---
+
+## 🚀 2. Seeding & Database Tooling
+
+You can seed or rebuild the database using the helper script:
+```bash
+python seed_database.py
+```
+This script automatically compiles configuration directories, reads legacy configurations from `Example Configurations/`, and populates `offset_setup.db` with the correct tables, column structures, and product range mappings.

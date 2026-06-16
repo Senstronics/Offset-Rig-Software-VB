@@ -267,109 +267,6 @@ errhandler:
     End If
 End Sub
 
-Public Function Update25DayHoldResult() As Boolean
-    Dim FilePath As String
-    Dim FileName As String
-    Dim xlApp As Excel.Application
-    Dim xlBook As Excel.Workbook
-    Dim xlSheet As Excel.Worksheet
-    Dim Transducer As Long
-    Dim Row As Long
-    Dim InitialResult As Variant
-    Dim OffDif As Double
-    Dim Vout1OriginalOutputDisplay As Variant
-    Dim Response As VbMsgBoxResult
-    
-    Set xlApp = Nothing
-    Set xlBook = Nothing
-    Set xlSheet = Nothing
-    
-    FilePath = ResultsPath
-    FileName = FilePath & WorksOrder & ".xls"
-    
-    Set xlApp = New Excel.Application
-    
-RetryOpen:
-    On Error GoTo errhandler_open
-    Set xlBook = xlApp.Workbooks.Open(FileName)
-    On Error GoTo 0
-    
-    On Error GoTo errhandler
-    Set xlSheet = xlBook.Worksheets(1)
-    
-    Transducer = MainForm.SensorID
-    Row = Transducer + 12
-    
-    InitialResult = xlSheet.Cells(Row, 2).Value
-    
-    If InitialResult = "" Then
-        MsgBox "PART HAS NOT BEEN THROUGH OFFSET 1"
-        Update25DayHoldResult = False
-    Else
-        Update25DayHoldResult = True
-        xlSheet.Cells(Row, 7) = MainForm.VOUT1OutputDisplay
-        xlSheet.Cells(Row, 8) = MainForm.VOUT1OUTPUTERRORDISPLAY
-        OffDif = xlSheet.Cells(Row, 8) - xlSheet.Cells(Row, 4)
-        Vout1OriginalOutputDisplay = xlSheet.Cells(Row, 4)
-        xlSheet.Cells(Row, 9) = OffDif
-        
-        MainForm.VoutDiffDisplay = Format$(OffDif, "0.000")
-        MainForm.Vout1OriginalOutputDisplay = xlSheet.Cells(Row, 3)
-        
-        If OffDif > 0.15 Or OffDif < -0.1 Then
-            xlSheet.Cells(Row, 2) = "FailedSecondOffset1"
-            SensorStatus(MainForm.SensorID) = FailedSecondOffset1
-            MainForm.OffDifFail.Visible = True
-        End If
-        
-        xlApp.DisplayAlerts = False
-        
-RetrySave:
-        On Error GoTo errhandler_save
-        xlBook.SaveAs FileName:=FileName, FileFormat:=56
-        On Error GoTo 0
-    End If
-    
-    Set xlSheet = Nothing
-    xlBook.Close SaveChanges:=False
-    Set xlBook = Nothing
-    xlApp.Quit
-    Set xlApp = Nothing
-    Exit Function
-    
-errhandler_open:
-    Response = MsgBox("Error accessing results sheet: " & FileName & vbCrLf & _
-                      "Ensure the file is not open elsewhere and click Retry, or Cancel to abort.", vbRetryCancel + vbExclamation, "File Access Error")
-    If Response = vbRetry Then
-        Resume RetryOpen
-    End If
-    GoTo errhandler_silent
-    
-errhandler_save:
-    Response = MsgBox("Error saving results sheet: " & FileName & vbCrLf & _
-                      "Ensure the file is not locked/open and click Retry, or Cancel to abort.", vbRetryCancel + vbExclamation, "File Save Error")
-    If Response = vbRetry Then
-        Resume RetrySave
-    End If
-    
-errhandler:
-    MsgBox " ERROR SAVING DATA TO FILE"
-errhandler_silent:
-    Set xlSheet = Nothing
-    If Not xlBook Is Nothing Then
-        On Error Resume Next
-        xlBook.Close SaveChanges:=False
-        On Error GoTo 0
-        Set xlBook = Nothing
-    End If
-    If Not xlApp Is Nothing Then
-        On Error Resume Next
-        xlApp.Quit
-        On Error GoTo 0
-        Set xlApp = Nothing
-    End If
-    Update25DayHoldResult = False
-End Function
 
 Public Sub UpdateExcelWithIdResults()
     Dim FilePath As String
@@ -473,40 +370,38 @@ RetryOpen:
         MainForm.PercentBox.BackColor = &HFFFFFF
     End If
     
-    If Post25DayTest = False And Retests = False Then
-        If xlSheet.Cells(Row, 3) = "" Then
-            xlSheet.Cells(Row, 3) = MainForm.VOUT1OutputDisplay
-        Else
-            OldReading = xlSheet.Cells(Row, 3)
-            For i = 20 To 100
-                Column = i
-                If xlSheet.Cells(Row, Column) = "" Then
-                    xlSheet.Cells(Row, 3) = MainForm.VOUT1OutputDisplay
-                    xlSheet.Cells(Row, Column) = OldReading
-                    Exit For
-                End If
-            Next
-        End If
-        
-        xlSheet.Cells(1, 2) = MainForm.PassedBox
-        xlSheet.Cells(2, 2) = MainForm.FailedBox
-        
-        xlSheet.Cells(Row, 4) = MainForm.VOUT1OUTPUTERRORDISPLAY
-        xlSheet.Cells(Row, 5) = MainForm.OffsetFromCalDisplay
-        xlSheet.Cells(Row, 6) = MainForm.OFFSETDIFFDISPLAY
-        xlSheet.Cells(Row, 10) = MainForm.VOUT2OutputDisplay
-        xlSheet.Cells(Row, 11) = MainForm.STCGNDDisplay
-        xlSheet.Cells(Row, 12) = MainForm.STCVSDisplay
-        xlSheet.Cells(Row, 13) = MainForm.STCVOUT1Display
-        xlSheet.Cells(Row, 14) = MainForm.STCVOUT2Display
-        xlSheet.Cells(Row, 15) = MainForm.CurrentDisplay
-        xlSheet.Cells(Row, 16) = ORingResult
-        xlSheet.Cells(Row, 17) = RestrictorResult
-        xlSheet.Cells(Row, 18) = RestrictorWelded
-        xlSheet.Cells(Row, 19) = CorrectUnion
-        
-        xlSheet.Cells(10, 2) = MainForm.PODCheck
+    If xlSheet.Cells(Row, 3) = "" Then
+        xlSheet.Cells(Row, 3) = MainForm.VOUT1OutputDisplay
+    Else
+        OldReading = xlSheet.Cells(Row, 3)
+        For i = 20 To 100
+            Column = i
+            If xlSheet.Cells(Row, Column) = "" Then
+                xlSheet.Cells(Row, 3) = MainForm.VOUT1OutputDisplay
+                xlSheet.Cells(Row, Column) = OldReading
+                Exit For
+            End If
+        Next
     End If
+    
+    xlSheet.Cells(1, 2) = MainForm.PassedBox
+    xlSheet.Cells(2, 2) = MainForm.FailedBox
+    
+    xlSheet.Cells(Row, 4) = MainForm.VOUT1OUTPUTERRORDISPLAY
+    xlSheet.Cells(Row, 5) = MainForm.OffsetFromCalDisplay
+    xlSheet.Cells(Row, 6) = MainForm.OFFSETDIFFDISPLAY
+    xlSheet.Cells(Row, 10) = MainForm.VOUT2OutputDisplay
+    xlSheet.Cells(Row, 11) = MainForm.STCGNDDisplay
+    xlSheet.Cells(Row, 12) = MainForm.STCVSDisplay
+    xlSheet.Cells(Row, 13) = MainForm.STCVOUT1Display
+    xlSheet.Cells(Row, 14) = MainForm.STCVOUT2Display
+    xlSheet.Cells(Row, 15) = MainForm.CurrentDisplay
+    xlSheet.Cells(Row, 16) = ORingResult
+    xlSheet.Cells(Row, 17) = RestrictorResult
+    xlSheet.Cells(Row, 18) = RestrictorWelded
+    xlSheet.Cells(Row, 19) = CorrectUnion
+    
+    xlSheet.Cells(10, 2) = MainForm.PODCheck
     
     AddToHistoryLogCDrive "Close Excel"
     xlApp.DisplayAlerts = False

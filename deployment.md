@@ -37,16 +37,22 @@ To set up a local developer machine for editing and simulating the software:
 The physical testing rigs in Unit 3 run the compiled executable from the local disk but check the network share for updates automatically. Rig machines do **not** need Git or twinBASIC.
 
 ### Filepath Standards on Rig Machines:
-* **Local Rig Folder:** `C:\offset setup files`
-  * This folder contains the rig configuration files, setup databases, and the currently running executable.
+* **Local Rig Folder:** `C:\ProgramData\Senstronics\OffsetRig\`
+  * This folder contains the local configuration `offset_config.txt` and the consolidated SQLite database `offset_setup.db`.
 * **Network Release Share:** `Q:\SENSTRONICS\CONTROLLED MACHINE SOFTWARE\Offset Rig Software VB`
   * This shared drive holds the latest compiled and tagged version of `OffsetCheck.exe`.
+
+### Required Local Files:
+For the compiled executable to run successfully on a physical rig, ensure the following are present:
+1. **SQLite Database:** `C:\ProgramData\Senstronics\OffsetRig\offset_setup.db` (which is seeded using `seed_database.py`).
+2. **Local Settings:** `C:\ProgramData\Senstronics\OffsetRig\offset_config.txt`.
+3. **SQLite DLL:** A 32-bit `sqlite3.dll` must be placed in the same folder as the running executable (`OffsetCheck.exe` / `C:\offset setup files\`) so that the application can dynamically load it.
 
 ### Rig Installation Procedure:
 1. Ensure the network `Q:` drive is mounted on the rig machine.
 2. Copy the launcher files from the network share to the rig:
    * Copy `launcher.bat` and `LaunchOffsetCheck.ps1` to the rig's **Desktop** or to `C:\offset setup files\`.
-3. Configure the rig configuration file `C:\offset setup files\offset_config.txt` for physical testing:
+3. Configure the local settings file `C:\ProgramData\Senstronics\OffsetRig\offset_config.txt` for physical testing:
    * Set `dev_mode,0` (or delete the line).
    * Specify the physical instrument parameters (e.g., `psu_visa_id`).
 4. Run the **`launcher.bat`** script on the Desktop.

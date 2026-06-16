@@ -34,9 +34,8 @@ The core goal of this project is two-fold:
 
 ## 🚀 Key Modernizations Achieved
 
+*   **🗄️ Setup Databases Consolidation (SQLite):** Consolidated all separate text configuration files (`Board Type.txt`, `union list.txt`, `connector type.txt`, `Colour list.txt`, `cable list.txt`, `Cable Usage.txt`, and `non-standard_processes.txt`) into a single centralized SQLite database (`offset_setup.db`) loaded at runtime from `C:\ProgramData\Senstronics\OffsetRig\`.
 *   **🎛️ Codebase Unification:** Consolidated three distinct, station-specific project directories into one repository. Station-specific hardware identifiers (VISA IDs), calibration constants, and timing delays have been abstracted into a single local config file: `offset_config.txt`.
-*   **🔌 Dynamic Current Draw Overrides:** Replaced duplicated hardcoded current limits with dynamic limits loaded from `current_draw.txt` on a per-product-range basis.
-*   **🗺️ Configuration-Driven Process Routing:** Replaced hardcoded EOL test routing rules (e.g. `PackOnly` checks) and custom voltage limit/verification overrides (like the special cases for `UB`, `AM`, and `UC`) with a fully dynamic configuration database file `non-standard_processes.txt`.
 *   **📂 Dynamic File Parsing:** Replaced the legacy fixed-length loops with modern `Do While Not EOF(FileHandle)` structures.
 *   **Option Explicit Directives:** Enforced strict variable declaration compilation checks across all key modules, resolving dozens of implicit type compiler warnings.
 *   **Line of Best Fit Resistor Conversion:** Replaced the 1,000+ line hardcoded resistor mapping table with a single Line of Best Fit equation ($R^2 = 99.998\%$) in `CheckLoad()`.
@@ -55,5 +54,4 @@ The core goal of this project is two-fold:
 
 Our focus is on the final consolidation phase to prepare the application for a future modernization effort:
 
-*   **🗄️ Setup Databases Consolidation (Centralizing Configurations):** Consolidate the multiple separate text files currently used to store long-term rig databases (such as `Board Type.txt`, `union list.txt`, `connector type.txt`, `Colour list.txt`, and `cable list.txt`) into a single structured configuration or a shared SQLite database. Since these parameters are identical across all three physical Offset calibration stations, moving to a unified configuration source will simplify change management and ensure absolute data alignment across rigs.
 *   **🚀 Future Modernization:** Restructure and clean the unified twinBASIC codebase to prepare the application for translation into modern language frameworks (e.g., Python or C#) on the horizon.

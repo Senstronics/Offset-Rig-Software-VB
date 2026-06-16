@@ -1,0 +1,56 @@
+XA,M12,1
+2D,M12,0
+XB,GDS,1
+XD,AMP,0
+XF,Metri T,0
+XG,Deutsch,1
+XH,Bayonet,1
+XJ,Flying Lead,1
+XR,Flying Lead,1
+G2,Flying Lead,0
+XL,Metri T,0
+XN,Deutsch,1
+XP,Merti T Gold,0
+XS,Sicma II,0
+XQ,AMP,0
+XT,Cabled,1
+XU,Large Din,1
+XV,Conduit,0
+XW,M12-2 Pin,0
+XY,3 Pin Deutsch,0
+XZ,3 Pin Buried Deutsch,1
+A1,M12,1
+B1,GDS,1
+C1,Sumitomo,0
+C2,Sumitomo,0
+G1,Explosion Proof,0
+H1,JPT,0
+L4,Small Can,0
+M1,Deustch Gold Pin,0
+L3,Pig Tail,0
+K1,Pig Tail,0
+L4,Pig Tail,0
+2D,M12 Buried,0
+3B,Bendix,1
+L5,Hypertherm,0
+L1,Hypertherm,0
+K1,Milwaukee,1
+M1,3 Pin Deutsch,0     
+XQ,AMP,1   
+2D,M12,1
+B1,GDS,1
+XL,Metri T,1
+LA,Pig Tail,0
+AN,M12,1
+MT,Metri T,0
+3S,Hypertherm,0
+LT,Metri T,0
+3C,Bendix,1
+P1,M12,1
+LF,M12,1
+E3,Large Din,1
+L8,Pig Tail,0
+L9,Pig Tail,0
+Q1,Deutsch,1
+N1,Moulded Large Din,0
+AT,FL,0

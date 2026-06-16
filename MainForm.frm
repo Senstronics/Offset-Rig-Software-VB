@@ -2139,13 +2139,12 @@ Attribute VB_Exposed = False
 Private Sub ClearDownButton_Click()
     CheckForUpdates
 
-    Dim WshShell As Object
-     
-    Set WshShell = CreateObject("WScript.Shell")
-     
     ClearDown
     DetailChecked = False
-    WshShell.SendKeys "{Tab}"
+    
+    On Error Resume Next
+    WorksOrderBarcode.SetFocus
+    On Error GoTo 0
 End Sub
 Private Sub Command3_Click()
 
@@ -2210,11 +2209,7 @@ Public Sub ProcessKeypress(ByVal keyascii As Integer)
             SCANMCS3Label.Enabled = True
             PartNumberLabel.Enabled = True
 
-            Dim WshShell As Object
-             
-            Set WshShell = CreateObject("WScript.Shell")
-             
-                WshShell.SendKeys "{Tab}"
+            FirstMCSBarcode.SetFocus
         End If
     End If
 
@@ -2255,16 +2250,9 @@ Private Sub Form_Load()
     InitialiseDMM
     OpenAllSwitches
         
-    FindRigType
     ClearDownButton_Click
     MsgBox "Please Confirm Vision Light Is On"
  
-'1= Offset with switch and printer
-'2= 25 Day Hold
-'3= 90 Day Hold
- 
-If OffsetType = 1 Then
-     
     IOCard = True
     UsePrinter = True
     Initialise7250
@@ -2277,40 +2265,6 @@ If OffsetType = 1 Then
     Vout1OriginalOutputDisplay.Visible = False
     VoutDiffLabel.Visible = False
     VoutDiffDisplay.Visible = False
- 
-ElseIf OffsetType = 2 Then
-
-    IOCard = True
-    UsePrinter = False
-    Initialise7250
-    OffsetOnly = False
-    Post25DayTest = True
-    Retests = False
-    MainForm.BackColor = &H80C0FF
-    TitleLabel.Caption = "POST 25 Day HOLD CHECK " & CompileVersion
-    Me.Caption = TitleLabel.Caption
-    Vout1OriginalOutputLabel.Visible = True
-    Vout1OriginalOutputDisplay.Visible = True
-    VoutDiffLabel.Visible = True
-    VoutDiffDisplay.Visible = True
-    
-ElseIf OffsetType = 3 Then
-
-    IOCard = True
-    UsePrinter = False
-    Initialise7250
-    OffsetOnly = False
-    Post25DayTest = False
-    Retests = False
-    MainForm.BackColor = &H8080FF
-    TitleLabel.Caption = "0.4% RETEST SCRAP OFFSET CHECKER " & CompileVersion
-    Me.Caption = TitleLabel.Caption
-    Vout1OriginalOutputLabel.Visible = False
-    Vout1OriginalOutputDisplay.Visible = False
-    VoutDiffLabel.Visible = False
-    VoutDiffDisplay.Visible = False
-
-End If
     
     DetailChecked = False
     ReadyFlag = True
@@ -2330,6 +2284,7 @@ Private Sub Form_Unload(cancel As Integer)
     SetPSU2 0
     SetPSU3 0
     OpenAllSwitches
+    DB_Close
 End Sub
 
 Public Sub EmptyFields()

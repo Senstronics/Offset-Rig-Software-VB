@@ -1,6 +1,6 @@
 # ⚙️ Configuration Guide (`offset_config.txt`)
 
-This document explains all the configurable parameters supported by the Offset Rig Software. These parameters are parsed from the local configuration file **`offset_config.txt`**, which must be located in the same directory as the executable (`OffsetCheck.exe`).
+This document explains all the configurable parameters supported by the Offset Rig Software. These parameters are parsed from the local configuration file **`offset_config.txt`**, which must be located at **`C:\ProgramData\Senstronics\OffsetRig\offset_config.txt`**.
 
 If a parameter is not specified in the config file, the software automatically falls back to its built-in, backward-compatible default values.
 
@@ -38,27 +38,23 @@ psu_ch3_factor, 0.965
 
 ---
 
-## 🗄️ 2. Database & Resource Paths
+## 🗄️ 2. Centralized SQLite Database & Deprecated Path Settings
 
-Paths to the local text databases containing product categories, union codes, board mapping logic, and cable types.
+To simplify change management and ensure data alignment across rigs, all legacy flat-file databases (such as `Board Type.txt`, `union list.txt`, `connector type.txt`, `Colour list.txt`, and `cable list.txt`) have been **consolidated into a single central SQLite database**:
+* **SQLite Database Path:** `C:\ProgramData\Senstronics\OffsetRig\offset_setup.db`
 
-| Parameter Name | Default Value | Description |
+The following path parameters in `offset_config.txt` are now **deprecated** and no longer used by the application, as their databases have been migrated to tables in the SQLite database:
+
+| Parameter Name | Status | Replaced By |
 | :--- | :--- | :--- |
-| **`board_type_path`** | `C:\offset setup files\Board Type.txt` | Path to the text database mapping circuit board identifiers to pinout relays. |
-| **`union_list_path`** | `C:\offset setup files\union list.txt` | Path to the list of supported union mechanical fittings and their calibration IDs. |
-| **`connector_type_path`**| `C:\offset setup files\connector type.txt` | Path to the connector list defining active pins. |
-| **`colour_list_path`** | `C:\offset setup files\Colour list.txt` | Path to the wire colour code database. |
-| **`cable_list_path`** | `C:\offset setup files\cable list.txt` | Path to the active cable assembly part numbers. |
-| **`cable_usage_path`** | `C:\offset setup files\Cable Usage.txt` | Path to the rolling cable cycle counter database. |
-| **`rig_type_path`** | `C:\offset setup files\Rig Type.txt` | Path to the rig type classification file (defines rig-specific limits). |
-| **`non_standard_processes_path`** | `C:\offset setup files\non-standard_processes.txt` | Path to the database file mapping product prefixes to non-standard EOL test routes, limits, and verification requirements. |
-
-**Example:**
-```text
-board_type_path, D:\RigSetup\Board Type.txt
-cable_usage_path, C:\RigData\Cable Usage.txt
-non_standard_processes_path, D:\RigSetup\non-standard_processes.txt
-```
+| **`board_type_path`** | Deprecated | `board_types` table in `offset_setup.db` |
+| **`union_list_path`** | Deprecated | `unions` table in `offset_setup.db` |
+| **`connector_type_path`** | Deprecated | `connector_types` table in `offset_setup.db` |
+| **`colour_list_path`** | Deprecated | `wire_colours` table in `offset_setup.db` |
+| **`cable_list_path`** | Deprecated | `cable_mappings` table in `offset_setup.db` |
+| **`cable_usage_path`** | Deprecated | `cable_harness` table in `offset_setup.db` |
+| **`rig_type_path`** | Deprecated | Hardcoded to `1` in codebase (unified OffsetType) |
+| **`non_standard_processes_path`**| Deprecated | `product_ranges` table in `offset_setup.db` |
 
 ---
 
@@ -86,8 +82,8 @@ work_order_path, C:\OfflineBackup\paulseal.txt
 
 | Parameter Name | Default Value | Description |
 | :--- | :--- | :--- |
-| **`sound_complete_path`**| `C:\offset setup files\complete.wav` | Path to the `.wav` audio file played when a sensor passes EOL calibration. |
-| **`sound_failed_path`** | `C:\offset setup files\failed.wav` | Path to the `.wav` audio file played when a sensor fails calibration. |
+| **`sound_complete_path`**| `[AppPath]\complete.wav` | Path to the `.wav` audio file played when a sensor passes EOL calibration. |
+| **`sound_failed_path`** | `[AppPath]\failed.wav` | Path to the `.wav` audio file played when a sensor fails calibration. |
 | **`update_network_path`**| `Q:\SENSTRONICS\CONTROLLED MACHINE SOFTWARE\Offset Rig Software VB` | Network directory monitored on clean-down to check for and fetch newer builds of `OffsetCheck.exe`. |
 
 **Example:**

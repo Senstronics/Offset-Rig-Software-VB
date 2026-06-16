@@ -280,6 +280,11 @@ Public Function MeasureDMM(ByVal Mode As String) As Double
 End Function
 
 Public Function CheckLoadOn() As Boolean
+    If DevMode Then
+        CheckLoadOn = False
+        Exit Function
+    End If
+
     Dim reading As Double
     CheckLoadOn = False
     

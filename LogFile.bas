@@ -49,6 +49,8 @@ Public Type NonStandardProcessRoute
     ProcessName As String
     LimitVoltage As Double
     RequireVerification As Boolean
+    CurrentDrawLower As Double
+    CurrentDrawUpper As Double
 End Type
 
 Public NonStandardProcesses() As NonStandardProcessRoute
@@ -641,6 +643,16 @@ Public Sub LoadOffsetConfig()
     Dim key As String
     Dim value As String
 
+    ' Ensure directory exists
+    On Error Resume Next
+    If Dir$("C:\ProgramData\Senstronics", vbDirectory) = "" Then
+        MkDir "C:\ProgramData\Senstronics"
+    End If
+    If Dir$("C:\ProgramData\Senstronics\OffsetRig", vbDirectory) = "" Then
+        MkDir "C:\ProgramData\Senstronics\OffsetRig"
+    End If
+    On Error GoTo 0
+
     ' Set default values
     PSU_Visa_ID = "9103875"
     Temp_Cal_Offset = -5#
@@ -648,106 +660,84 @@ Public Sub LoadOffsetConfig()
     PSU_Ch2_Factor = 0.986
     PSU_Ch3_Factor = 0.9645
     
-    BoardTypePath = "C:\offset setup files\Board Type.txt"
-    UnionListPath = "C:\offset setup files\union list.txt"
-    ConnectorTypePath = "C:\offset setup files\connector type.txt"
-    ColourListPath = "C:\offset setup files\Colour list.txt"
-    CableListPath = "C:\offset setup files\cable list.txt"
-    CableUsagePath = "C:\offset setup files\Cable Usage.txt"
-    RigTypePath = "C:\offset setup files\Rig Type.txt"
-    NonStandardProcessesPath = "C:\offset setup files\non-standard_processes.txt"
     ResultsPath = "\\USVR8\Results\Production\Offset Check Results\"
     LocalResultsPath = "C:\My documents\Offset Check Results\"
     WorkOrderPath = "M:\paulseal.txt"
     LabelPrintInputPath = "M:\system\load\Vborders.txt"
     LabelPrintBatchPath = "C:\liveorders\PrintLabel.bat"
-    SoundCompletePath = "C:\offset setup files\complete.wav"
-    SoundFailedPath = "C:\offset setup files\failed.wav"
+    SoundCompletePath = App.Path & "\complete.wav"
+    SoundFailedPath = App.Path & "\failed.wav"
     UpdateNetworkPath = "Q:\SENSTRONICS\CONTROLLED MACHINE SOFTWARE\Offset Rig Software VB"
     DevMode = False
 
-    FileName = App.Path & "\offset_config.txt"
+    FileName = "C:\ProgramData\Senstronics\OffsetRig\offset_config.txt"
 
-    If Dir$(FileName) = "" Then
-        Exit Sub
-    End If
+    If Dir$(FileName) <> "" Then
+        On Error GoTo errhandler
+        FileHandle = FreeFile
+        Open FileName For Input As #FileHandle
 
-    On Error GoTo errhandler
-    FileHandle = FreeFile
-    Open FileName For Input As #FileHandle
+        If LOF(FileHandle) > 0 Then
+            fileContent = Input(LOF(FileHandle), FileHandle)
+        Else
+            fileContent = ""
+        End If
+        Close #FileHandle
 
-    If LOF(FileHandle) > 0 Then
-        fileContent = Input(LOF(FileHandle), FileHandle)
-    Else
-        fileContent = ""
-    End If
-    Close #FileHandle
+        fileContent = Replace(fileContent, vbCrLf, vbLf)
+        fileContent = Replace(fileContent, vbCr, vbLf)
 
-    fileContent = Replace(fileContent, vbCrLf, vbLf)
-    fileContent = Replace(fileContent, vbCr, vbLf)
+        lines = Split(fileContent, vbLf)
 
-    lines = Split(fileContent, vbLf)
-
-    For LineIdx = 0 To UBound(lines)
-        s = Trim$(lines(LineIdx))
-        If s <> "" And Left$(s, 1) <> "#" And Left$(s, 1) <> ";" Then
-            SplitValues = Split(s, ",")
-            If UBound(SplitValues) >= 1 Then
-                key = Trim$(LCase$(SplitValues(0)))
-                value = Trim$(SplitValues(1))
-                If key = "psu_visa_id" Then
-                    PSU_Visa_ID = value
-                ElseIf key = "temp_cal_offset" Then
-                    Temp_Cal_Offset = Val(value)
-                ElseIf key = "relay_delay" Then
-                    Relay_Delay = Val(value)
-                ElseIf key = "psu_ch2_factor" Then
-                    PSU_Ch2_Factor = Val(value)
-                ElseIf key = "psu_ch3_factor" Then
-                    PSU_Ch3_Factor = Val(value)
-                ElseIf key = "board_type_path" Then
-                    BoardTypePath = value
-                ElseIf key = "union_list_path" Then
-                    UnionListPath = value
-                ElseIf key = "connector_type_path" Then
-                    ConnectorTypePath = value
-                ElseIf key = "colour_list_path" Then
-                    ColourListPath = value
-                ElseIf key = "cable_list_path" Then
-                    CableListPath = value
-                ElseIf key = "cable_usage_path" Then
-                    CableUsagePath = value
-                ElseIf key = "rig_type_path" Then
-                    RigTypePath = value
-                ElseIf key = "non_standard_processes_path" Then
-                    NonStandardProcessesPath = value
-                ElseIf key = "results_path" Then
-                    ResultsPath = value
-                ElseIf key = "local_results_path" Then
-                    LocalResultsPath = value
-                ElseIf key = "work_order_path" Then
-                    WorkOrderPath = value
-                ElseIf key = "label_print_input_path" Then
-                    LabelPrintInputPath = value
-                ElseIf key = "label_print_batch_path" Then
-                    LabelPrintBatchPath = value
-                ElseIf key = "sound_complete_path" Then
-                    SoundCompletePath = value
-                ElseIf key = "sound_failed_path" Then
-                    SoundFailedPath = value
-                ElseIf key = "update_network_path" Then
-                    UpdateNetworkPath = value
-                ElseIf key = "dev_mode" Then
-                    DevMode = (value = "1" Or LCase$(value) = "true")
+        For LineIdx = 0 To UBound(lines)
+            s = Trim$(lines(LineIdx))
+            If s <> "" And Left$(s, 1) <> "#" And Left$(s, 1) <> ";" Then
+                SplitValues = Split(s, ",")
+                If UBound(SplitValues) >= 1 Then
+                    key = Trim$(LCase$(SplitValues(0)))
+                    value = Trim$(SplitValues(1))
+                    If key = "psu_visa_id" Then
+                        PSU_Visa_ID = value
+                    ElseIf key = "temp_cal_offset" Then
+                        Temp_Cal_Offset = Val(value)
+                    ElseIf key = "relay_delay" Then
+                        Relay_Delay = Val(value)
+                    ElseIf key = "psu_ch2_factor" Then
+                        PSU_Ch2_Factor = Val(value)
+                    ElseIf key = "psu_ch3_factor" Then
+                        PSU_Ch3_Factor = Val(value)
+                    ElseIf key = "results_path" Then
+                        ResultsPath = value
+                    ElseIf key = "local_results_path" Then
+                        LocalResultsPath = value
+                    ElseIf key = "work_order_path" Then
+                        WorkOrderPath = value
+                    ElseIf key = "label_print_input_path" Then
+                        LabelPrintInputPath = value
+                    ElseIf key = "label_print_batch_path" Then
+                        LabelPrintBatchPath = value
+                    ElseIf key = "sound_complete_path" Then
+                        SoundCompletePath = value
+                    ElseIf key = "sound_failed_path" Then
+                        SoundFailedPath = value
+                    ElseIf key = "update_network_path" Then
+                        UpdateNetworkPath = value
+                    ElseIf key = "dev_mode" Then
+                        DevMode = (value = "1" Or LCase$(value) = "true")
+                    End If
                 End If
             End If
-        End If
-    Next LineIdx
-    LoadNonStandardProcesses
+        Next LineIdx
+    End If
+
+    If Not DB_Open("C:\ProgramData\Senstronics\OffsetRig\offset_setup.db") Then
+        MsgBox "Failed to open SQLite database offset_setup.db. Contact Engineering"
+    End If
     Exit Sub
 
 errhandler:
     MsgBox "Error reading offset_config.txt: " & Err.Description & ". Using default configuration."
+    DB_Open "C:\ProgramData\Senstronics\OffsetRig\offset_setup.db"
 End Sub
 
 Public Sub LoadNonStandardProcesses()

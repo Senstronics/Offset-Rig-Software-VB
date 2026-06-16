@@ -200,22 +200,33 @@ Private Function ProcessLiveWorkOrdersFileLine(ByVal s As String)
 End Function
 Private Sub SplitLiveWorkOrder(ByVal s As String, ByRef WO As String, ByRef PN As String, ByRef BC1 As String, ByRef BC2 As String, ByRef BC3 As String)
      
-   Dim SplitValues() As String
+    Dim SplitValues() As String
+    SplitValues = Split(s, ",")
     
-SplitValues = Split(s, ",")
-        
-WO = SplitValues(0)
-PN = SplitValues(1)
-BC1 = SplitValues(2)
-BC2 = SplitValues(3)
-BC3 = SplitValues(4)
-
+    If UBound(SplitValues) >= 4 Then
+        WO = Trim$(SplitValues(0))
+        PN = Trim$(SplitValues(1))
+        BC1 = Trim$(SplitValues(2))
+        BC2 = Trim$(SplitValues(3))
+        BC3 = Trim$(SplitValues(4))
+    Else
+        WO = ""
+        PN = ""
+        BC1 = ""
+        BC2 = ""
+        BC3 = ""
+    End If
 End Sub
 Public Function CheckDetails()
 
 Dim i As Integer
 Dim MyValue As String
 Dim HasRoute As Boolean
+Dim ProgNum As Long
+Dim ChannelNum As Long
+Dim ConnName As String
+Dim ReqSTC As Boolean
+Dim IsFourPinVal As Boolean
 
     WorksOrder = (Mid$(MainForm.WorksOrderBarcode, 5, 15))
     
@@ -235,21 +246,17 @@ Dim HasRoute As Boolean
         Exit Function
     End If
     
-    ReadConnectorTypeList
-    ReadRetrieveColourList
-    ReadRetrieveCableList
-    ReadRetrieveUnionList
-    ReadRetrieveCableUsage
-    ReadBoardTypeList
     LoadOffsetConfig
-
-    LoadCurrentDrawOverrides
     
     ' Parse the first and third barcodes programmatically
     ParseFirstBarcode MainForm.FirstMCSBarcode
     ParseThirdBarcode MainForm.ThirdMCSBarcode
     
-    HasRoute = GetNonStandardProcessRoute(WorksOrder, CurrentRoute)
+    Dim LocalRoute As NonStandardProcessRoute
+    HasRoute = DB_GetProductRange(WorksOrder, LocalRoute)
+    If HasRoute Then
+        CurrentRoute = LocalRoute
+    End If
     
     If HasRoute And CurrentRoute.ProcessName = "PackOnly" Then
         PackOnly = True
@@ -284,24 +291,16 @@ Dim HasRoute As Boolean
         
         MainForm.UnionCodeDisplay = MCSUnionType
         
-        i = 1
-    
-        For i = 1 To NumberOfUnions + 1
+        ProgNum = DB_GetUnionFittingID(MCSUnionType)
+        If ProgNum > 0 Then
+            VisionProgram = ProgNum
+            MainForm.ProgramDisplay = VisionProgram
+        Else
+            MsgBox "CAN'T FIND UNION TYPE. CONTACT ENGINEERING"
+            MainForm.ClearDown
+            Exit Function
+        End If
         
-            If i = NumberOfUnions Then
-                MsgBox "CAN'T FIND UNION TYPE. CONTACT ENGINEERING"
-                MainForm.ClearDown
-                Exit Function
-            Else
-                If MCSUnionType = UnionCode(i) Then
-                    VisionProgram = ProgramNumber(i)
-                    MainForm.ProgramDisplay = VisionProgram
-                    i = NumberOfUnions + 1
-                End If
-            End If
-        Next
-        
-        MainForm.ProgramDisplay = VisionProgram
         ChangeVisionProgram VisionProgram
         
         If PackOnly And CurrentRoute.RequireVerification Then
@@ -312,206 +311,139 @@ Dim HasRoute As Boolean
                 MainForm.RestrictorDisplay = "No"
             End If
              
-        i = 1
-                
-        For i = 1 To NumberOfCables + 1
+        ChannelNum = DB_GetCableChannel(CableType)
+        If ChannelNum = 0 Then
+            MsgBox "Connector Code Not In Cable List. See Engineering"
+            MainForm.ClearDown
+            Exit Function
+        End If
         
-            If i = NumberOfCables + 1 Then
-                MsgBox "Connector Code Not In Cable List. See Engineering"
-                MainForm.ClearDown
-                Exit Function
-            End If
-              
-            If CableType = CableCode(i) Then
-                
-                MainForm.CableNumberDisplay = CableNumber(i)
-            
-                MyValue = InputBox("PLEASE SCAN CABLE " & CableNumber(i), "", "", 7000, 5000)
-                                
-                MainForm.CableNumberDisplay = MyValue
-            
-                      
-                    If Len(MyValue) = 2 Then
-                        ScannedCableCode = Left(MyValue, 2)
-                    Else
-                        ScannedCableCode = Left(MyValue, 1)
-                    End If
-                
-                    If CableNumber(i) <> ScannedCableCode Then
-                        MsgBox "CABLE DOES NOT MATCH. CHECK CABLE & TRY AGAIN"
-                        MainForm.ClearDown
-                        Exit Function
-                    Else
-                        i = NumberOfCables + 1
-                    End If
-                End If
-            Next
+        MainForm.CableNumberDisplay = CStr(ChannelNum)
+        MyValue = InputBox("PLEASE SCAN CABLE " & ChannelNum, "", "", 7000, 5000)
+        MainForm.CableNumberDisplay = MyValue
+        
+        If Len(MyValue) = 2 Then
+            ScannedCableCode = Left(MyValue, 2)
+        Else
+            ScannedCableCode = Left(MyValue, 1)
+        End If
+        
+        If CStr(ChannelNum) <> ScannedCableCode Then
+            MsgBox "CABLE DOES NOT MATCH. CHECK CABLE & TRY AGAIN"
+            MainForm.ClearDown
+            Exit Function
+        End If
         
             i = 1
-           
-            For i = 1 To NumberOfConnectors + 1
-            
-                If i = NumberOfConnectors + 1 Then
-                    MainForm.ConnectorTypeDisplay = "Unknown"
-                    MsgBox "UNKNOWN CONNECTOR SEE ENGINEERING"
-                    MainForm.ClearDown
-                    Exit Function
+        If DB_GetConnector(ConnectorType, ConnName, IsFourPinVal) Then
+            MainForm.ConnectorTypeDisplay = ConnName
+            If OffsetOnly = False Then
+                If IsFourPinVal Then
+                    Vout2STC = True
+                    MainForm.STCVOUT2LABEL.Visible = True
+                    MainForm.STCVOUT2Display.Visible = True
                 Else
-        
-                    If ConnectorType = ConnectorCode(i) Then
-                        MainForm.ConnectorTypeDisplay = ConnectorName(i)
-                        If OffsetOnly = False Then
-                            If IsFourPin(i) = 1 Then
-                                Vout2STC = True
-                                MainForm.STCVOUT2LABEL.Visible = True
-                                MainForm.STCVOUT2Display.Visible = True
-                            Else
-                                Vout2STC = False
-                                MainForm.STCOUTPUTLabel.Visible = False
-                                MainForm.STCTargetDisplay.Visible = False
-                                MainForm.STCVOUT2LABEL.Visible = False
-                                MainForm.STCVOUT2Display.Visible = False
-                            End If
-                        End If
-                        i = NumberOfConnectors + 1
-                    End If
+                    Vout2STC = False
+                    MainForm.STCOUTPUTLabel.Visible = False
+                    MainForm.STCTargetDisplay.Visible = False
+                    MainForm.STCVOUT2LABEL.Visible = False
+                    MainForm.STCVOUT2Display.Visible = False
                 End If
-            Next
+            End If
+        Else
+            MainForm.ConnectorTypeDisplay = "Unknown"
+            MsgBox "UNKNOWN CONNECTOR SEE ENGINEERING"
+            MainForm.ClearDown
+            Exit Function
+        End If
             
             If MCSMatingConnector = "M" Or MCSMatingConnector = "H" Then
                 MsgBox " PLEASE STAMP FIT MATING CONNECTOR ON FRONT OF WORKS ORDER"
             End If
             
-            i = 1
-            
-            For i = 1 To NumberOfBoardTypes + 1
-        
-                If i = NumberOfBoardTypes + 1 Then
-                    MainForm.BoardTypeDisplay = "Unknown"
-                    MsgBox "UNKNOWN BOARDTYPE SEE ENGINEERING"
-                    MainForm.ClearDown
-                    Exit Function
-                Else
-                    If BoardType = BoardTypeList(i) Then
-                        MainForm.BoardTypeDisplay = BoardTypeList(i)
-                        PinOutSwitch = PinOut(i)
-                        If IsBoardSTC(i) = 0 Then
-                          MainForm.STCTargetDisplay = "OVRFLW"
-                        Else
-                          MainForm.STCTargetDisplay = "Less Than 2 ohms"
-                            If ConnectorType = "XY" Then
-                                MainForm.STCTargetDisplay = "OVRFLW"
-                            End If
-                        End If
-                        i = NumberOfBoardTypes + 1
-                    End If
-                End If
-            
-            Next
-       End If
-    End If
-    
-    If PackOnly = False Then
-           
-        i = 1
-                
-        For i = 1 To NumberOfCables + 1
-        
-            If i = NumberOfCables + 1 Then
-                MsgBox "Connector Code Not In Cable List. See Engineering"
-                MainForm.ClearDown
-                Exit Function
-            End If
-              
-            If CableType = CableCode(i) Then
-                
-                MainForm.CableNumberDisplay = CableNumber(i)
-            
-                MyValue = InputBox("PLEASE SCAN CABLE " & CableNumber(i), "", "", 7000, 5000)
-                                                                
-                MainForm.CableNumberDisplay = MyValue
-                
-                If Len(MyValue) = 2 Then
-                    ScannedCableCode = Left(MyValue, 1)
-                Else
-                    ScannedCableCode = Left(MyValue, 2)
-                End If
-            
-            ScannedCableCode = MyValue
-            
-                If CableNumber(i) <> ScannedCableCode Then
-                    MsgBox "CABLE DOES NOT MATCH. CHECK CABLE & TRY AGAIN"
-                    MainForm.ClearDown
-                    Exit Function
-                Else
-                    i = NumberOfCables + 1
+        If DB_GetBoardType(BoardType, PinOutSwitch, ReqSTC) Then
+            MainForm.BoardTypeDisplay = BoardType
+            If Not ReqSTC Then
+                MainForm.STCTargetDisplay = "OVRFLW"
+            Else
+                MainForm.STCTargetDisplay = "Less Than 2 ohms"
+                If ConnectorType = "XY" Then
+                    MainForm.STCTargetDisplay = "OVRFLW"
                 End If
             End If
-        Next
-                 
-        i = 1
-        
-        For i = 1 To NumberOfCableTypes + 1
-        
-            If MainForm.CableNumberDisplay = CableID(i) Then
-                MainForm.NumberOfUsesDisplay = CableUsage(i)
-                i = NumberOfCableTypes + 1
-            End If
-        Next
+        Else
+            MainForm.BoardTypeDisplay = "Unknown"
+            MsgBox "UNKNOWN BOARDTYPE SEE ENGINEERING"
+            MainForm.ClearDown
+            Exit Function
+        End If
+        End If
+     End If
+     
+     If PackOnly = False Then
             
+        ChannelNum = DB_GetCableChannel(CableType)
+        If ChannelNum = 0 Then
+            MsgBox "Connector Code Not In Cable List. See Engineering"
+            MainForm.ClearDown
+            Exit Function
+        End If
+        
+        MainForm.CableNumberDisplay = CStr(ChannelNum)
+        MyValue = InputBox("PLEASE SCAN CABLE " & ChannelNum, "", "", 7000, 5000)
+        MainForm.CableNumberDisplay = MyValue
+        
+        ScannedCableCode = MyValue
+        
+        If CStr(ChannelNum) <> ScannedCableCode Then
+            MsgBox "CABLE DOES NOT MATCH. CHECK CABLE & TRY AGAIN"
+            MainForm.ClearDown
+            Exit Function
+        End If
+                  
+        Dim CurrentUsage As Long
+        Dim UsageLimit As Long
+        If DB_GetCableWear(ChannelNum, CurrentUsage, UsageLimit) Then
+            MainForm.NumberOfUsesDisplay = CurrentUsage
+        Else
+            MainForm.NumberOfUsesDisplay = 0
+        End If
+             
         MainForm.UnionCodeDisplay = MCSUnionType
         
-        i = 1
-    
-        For i = 1 To NumberOfUnions + 1
+        ProgNum = DB_GetUnionFittingID(MCSUnionType)
+        If ProgNum > 0 Then
+            VisionProgram = ProgNum
+            MainForm.ProgramDisplay = VisionProgram
+        Else
+            MsgBox "CAN'T FIND UNION TYPE. CONTACT ENGINEERING"
+            MainForm.ClearDown
+            Exit Function
+        End If
         
-            If i = NumberOfUnions Then
-                MsgBox "CAN'T FIND UNION TYPE. CONTACT ENGINEERING"
-                MainForm.ClearDown
-                Exit Function
-            Else
-                If MCSUnionType = UnionCode(i) Then
-                    VisionProgram = ProgramNumber(i)
-                    MainForm.ProgramDisplay = VisionProgram
-                    i = NumberOfUnions + 1
-                End If
-            End If
-        Next
-        
-        MainForm.ProgramDisplay = VisionProgram
         ChangeVisionProgram VisionProgram
-                  
-        i = 1
-       
-        For i = 1 To NumberOfConnectors + 1
-        
-            If i = NumberOfConnectors + 1 Then
-                MainForm.ConnectorTypeDisplay = "Unknown"
-                MsgBox "UNKNOWN CONNECTOR SEE ENGINEERING"
-                MainForm.ClearDown
-                Exit Function
-            Else
-    
-                If ConnectorType = ConnectorCode(i) Then
-                    MainForm.ConnectorTypeDisplay = ConnectorName(i)
-                    If OffsetOnly = False Then
-                        If IsFourPin(i) = 1 Then
-                            Vout2STC = True
-                            MainForm.STCVOUT2LABEL.Visible = True
-                            MainForm.STCVOUT2Display.Visible = True
-                        Else
-                            Vout2STC = False
-                            MainForm.STCOUTPUTLabel.Visible = False
-                            MainForm.STCTargetDisplay.Visible = False
-                            MainForm.STCVOUT2LABEL.Visible = False
-                            MainForm.STCVOUT2Display.Visible = False
-                        End If
-                    End If
-                    i = NumberOfConnectors + 1
+                   
+        If DB_GetConnector(ConnectorType, ConnName, IsFourPinVal) Then
+            MainForm.ConnectorTypeDisplay = ConnName
+            If OffsetOnly = False Then
+                If IsFourPinVal Then
+                    Vout2STC = True
+                    MainForm.STCVOUT2LABEL.Visible = True
+                    MainForm.STCVOUT2Display.Visible = True
+                Else
+                    Vout2STC = False
+                    MainForm.STCOUTPUTLabel.Visible = False
+                    MainForm.STCTargetDisplay.Visible = False
+                    MainForm.STCVOUT2LABEL.Visible = False
+                    MainForm.STCVOUT2Display.Visible = False
                 End If
             End If
-        
-        Next
+        Else
+            MainForm.ConnectorTypeDisplay = "Unknown"
+            MsgBox "UNKNOWN CONNECTOR SEE ENGINEERING"
+            MainForm.ClearDown
+            Exit Function
+        End If
     
         If Vout2 Then
             Vout2STC = False
@@ -552,32 +484,22 @@ Dim HasRoute As Boolean
             MsgBox " PLEASE STAMP FIT MATING CONNECTOR ON FRONT OF WORKS ORDER"
         End If
         
-        i = 1
-        
-        For i = 1 To NumberOfBoardTypes + 1
-    
-            If i = NumberOfBoardTypes + 1 Then
-                MainForm.BoardTypeDisplay = "Unknown"
-                MsgBox "UNKNOWN BOARDTYPE SEE ENGINEERING"
-                MainForm.ClearDown
-                Exit Function
+        If DB_GetBoardType(BoardType, PinOutSwitch, ReqSTC) Then
+            MainForm.BoardTypeDisplay = BoardType
+            If Not ReqSTC Then
+                MainForm.STCTargetDisplay = "OVRFLW"
             Else
-                If BoardType = BoardTypeList(i) Then
-                    MainForm.BoardTypeDisplay = BoardTypeList(i)
-                    PinOutSwitch = PinOut(i)
-                    If IsBoardSTC(i) = 0 Then
-                      MainForm.STCTargetDisplay = "OVRFLW"
-                    Else
-                      MainForm.STCTargetDisplay = "Less Than 2 ohms"
-                        If ConnectorType = "XY" Then
-                            MainForm.STCTargetDisplay = "OVRFLW"
-                        End If
-                    End If
-                    i = NumberOfBoardTypes + 1
+                MainForm.STCTargetDisplay = "Less Than 2 ohms"
+                If ConnectorType = "XY" Then
+                    MainForm.STCTargetDisplay = "OVRFLW"
                 End If
             End If
-        
-        Next
+        Else
+            MainForm.BoardTypeDisplay = "Unknown"
+            MsgBox "UNKNOWN BOARDTYPE SEE ENGINEERING"
+            MainForm.ClearDown
+            Exit Function
+        End If
     
         If BoardType = "X5" Then
             Vout2 = False
@@ -699,12 +621,6 @@ Dim HasRoute As Boolean
     DetailChecked = True
        
     If FindExcelFile = False Then
-        If Post25DayTest = True Then
-            MsgBox "CAN'T FIND ORIGINAL FILE. CONTACT ENGINEERING"
-            MainForm.ClearDown
-            Exit Function
-        End If
-        
         CreateExcel
     Else
         If FindPODInExcelFile = True Then
@@ -911,8 +827,8 @@ Else
     CHECKVOUT1
     CHECKVOUT2
    
-    If Post25DayTest = False And Retests = False And SwitchHyst = False And BoardType <> "HY" Then
-    
+    If SwitchHyst = False And BoardType <> "HY" Then
+     
         FindOffset
     
         If PartNotCal = True Then
@@ -1603,101 +1519,70 @@ Dim lFlags     As Long
 Dim sSoundName As String
 Dim id As Double
 
-ReadyFlag2 = True               ' was ReadyFlag
+    ReadyFlag2 = True               ' was ReadyFlag
 
-If Retests = True Then
-
-    If Abs(Vout1Error) > 0.4 Then
-        SensorStatus(MainForm.SensorID) = FailedOffset1
+    If SensorStatus(MainForm.SensorID) <> PASSED Then
+          
+        sSoundName = SoundFailedPath
+        PlaySound sSoundName, CLng(0), 1
+        MainForm.PASSED.Visible = False
+        MainForm.FAILED.Visible = True
+        DoEvents
+        
+        If Abs(Vout1Error) > 1 Then
+            MsgBox " EXCESSIVE FAIL RECONNECT AND RE-MEASURE"
+        End If
+        
     Else
-        SensorStatus(MainForm.SensorID) = PASSED
+
+        AddToHistoryLog "TestComplete = " & Now
+        EndTime = Now    ' was commnented out
+
+        If MainForm.DisablePrinterCheck = 0 Then
+            PrintLabel
+        End If
+
+        MainForm.PASSED.Visible = True
+        MainForm.FAILED.Visible = False
+        
     End If
 
-End If
-
-If Post25DayTest = True Then
-    If Update25DayHoldResult = False Then
-        Exit Sub
-    End If
-End If
-
-If SensorStatus(MainForm.SensorID) <> PASSED Then
-      
-    sSoundName = SoundFailedPath
-    PlaySound sSoundName, CLng(0), 1
-    MainForm.PASSED.Visible = False
-    MainForm.FAILED.Visible = True
-    DoEvents
-    
-    If Abs(Vout1Error) > 1 Then
-        MsgBox " EXCESSIVE FAIL RECONNECT AND RE-MEASURE"
-    End If
-    
-Else
-
-AddToHistoryLog "TestComplete = " & Now
-EndTime = Now    ' was commnented out
-
-If OffsetType = 1 And MainForm.DisablePrinterCheck = 0 Then
-    PrintLabel
-End If
-
-    MainForm.PASSED.Visible = True
-    MainForm.FAILED.Visible = False
-    
-End If
-
-If Retests = False Then
     UpdateExcelWithIdResults
-End If
     
-AddToHistoryLogCDrive "Sub exited"
+    AddToHistoryLogCDrive "Sub exited"
 
-WorksOrder = (Mid$(MainForm.WorksOrderBarcode, 5, 15))
-SensorNumber = MainForm.SensorID.Text
-    
-AddToHistoryLogCDrive "starting log entry"
-    
-LogEntry = WorksOrder & "  " & SensorNumber & " " & SensorStatus(MainForm.SensorID) & "  " & "VOUT 1 = " & MainForm.VOUT1OutputDisplay & "," & CSVOffset & "," & OffsetErrorPercent & "," & MainForm.STCVSDisplay & "," & MainForm.STCGNDDisplay & "," & MainForm.STCVOUT1Display & "," & MainForm.STCVOUT2Display & "," & MainForm.VOUT2OutputDisplay & "," & MainForm.CurrentDisplay
-AddToHistoryLog LogEntry
-    
-AddToHistoryLogCDrive "log entry complete"
-    
+    WorksOrder = (Mid$(MainForm.WorksOrderBarcode, 5, 15))
+    SensorNumber = MainForm.SensorID.Text
+        
+    AddToHistoryLogCDrive "starting log entry"
+        
+    LogEntry = WorksOrder & "  " & SensorNumber & " " & SensorStatus(MainForm.SensorID) & "  " & "VOUT 1 = " & MainForm.VOUT1OutputDisplay & "," & CSVOffset & "," & OffsetErrorPercent & "," & MainForm.STCVSDisplay & "," & MainForm.STCGNDDisplay & "," & MainForm.STCVOUT1Display & "," & MainForm.STCVOUT2Display & "," & MainForm.VOUT2OutputDisplay & "," & MainForm.CurrentDisplay
+    AddToHistoryLog LogEntry
+        
+    AddToHistoryLogCDrive "log entry complete"
+        
     id = MainForm.SensorID.Text
     id = id + 1
     MainForm.SensorID.Text = id
     SensorNumber = id
-   
-If PackOnly = False Then
-
-    Dim i As Integer
-    
-    MainForm.NumberOfUsesDisplay = MainForm.NumberOfUsesDisplay + 1
-    
-    For i = 1 To NumberOfCableTypes
-    
-        If CableID(i) = MainForm.CableNumberDisplay Then
-        
-            CableUsage(i) = MainForm.NumberOfUsesDisplay
-    
-            If CableUsage(i) = 10000 Then
-                Usage.Show
-                MainForm.Hide
-                
-                
+       
+    If PackOnly = False Then
+        Dim ChannelNum As Long
+        ChannelNum = Val(MainForm.CableNumberDisplay)
+        If ChannelNum > 0 Then
+            MainForm.NumberOfUsesDisplay = MainForm.NumberOfUsesDisplay + 1
+            DB_IncrementCableUsage ChannelNum
+            
+            Dim CurrentUsage As Long
+            Dim UsageLimit As Long
+            If DB_GetCableWear(ChannelNum, CurrentUsage, UsageLimit) Then
+                If CurrentUsage >= UsageLimit Then
+                    Usage.Show
+                    MainForm.Hide
+                End If
             End If
-            Exit For
         End If
-        
-    Next
-    
- AddToHistoryLogCDrive "update cable usage"
-    
-    WriteCableUsageFile (CableUsagePath)
-    
- AddToHistoryLogCDrive "update cable usage complete"
-    
-End If
+    End If
 
     AddToHistoryLog "FileSaveComplete = " & Now
     
@@ -2342,8 +2227,13 @@ Public Sub VerifySupplyCurrent(Optional ByVal DefaultLower As Double = 2#, Optio
     SupplyCurrent = SupplyCurrent * 1000
     MainForm.CurrentDisplay = Format$(SupplyCurrent, "0.00" & " mA")
     
-    ProductRange = Mid$(WorksOrder, 1, 2)
-    GetCurrentLimits ProductRange, LowerLim, UpperLim, DefaultLower, DefaultUpper
+    LowerLim = CurrentRoute.CurrentDrawLower
+    UpperLim = CurrentRoute.CurrentDrawUpper
+    
+    If LowerLim = -1# And UpperLim = -1# Then
+        LowerLim = DefaultLower
+        UpperLim = DefaultUpper
+    End If
     
     If SupplyCurrent > LowerLim And SupplyCurrent < UpperLim Then
         MainForm.CurrentPass.Visible = True

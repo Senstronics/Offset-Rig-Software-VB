@@ -131,6 +131,7 @@ def sync_project(project_dir, fix_references_level=0):
     vision_path = os.path.join(project_dir, "Vision.bas")
     ieeevb_path = os.path.join(project_dir, "ieeevb.bas")
     barcode_path = os.path.join(project_dir, "Barcode.bas")
+    database_path = os.path.join(project_dir, "Database.bas")
     
     mainfrm_path = os.path.join(project_dir, "MainForm.frm")
     cableusagefrm_path = os.path.join(project_dir, "CableUsage.frm")
@@ -154,6 +155,8 @@ def sync_project(project_dir, fix_references_level=0):
         ieeevb_content = f.read()
     with open(barcode_path, "rb") as f:
         barcode_content = f.read()
+    with open(database_path, "rb") as f:
+        database_content = f.read()
         
     def update_nodes(node):
         if node.name == "LogFile.bas":
@@ -192,6 +195,10 @@ def sync_project(project_dir, fix_references_level=0):
             node.data_or_children = barcode_content
             node.val = len(barcode_content)
             print("  Updated Barcode.bas")
+        elif node.name == "Database.bas":
+            node.data_or_children = database_content
+            node.val = len(database_content)
+            print("  Updated Database.bas")
         elif node.name == "MainForm.frm.twin":
             twin_data = make_frm_twin_content(node.data_or_children, mainfrm_path)
             node.data_or_children = twin_data
