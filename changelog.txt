@@ -1,3 +1,10 @@
+Version v1.1.0 - 2026-06-16 15:18
+========================================
+* Fix to sync script. (b595cc6)
+* Breaking Changes: Moved to centralized configuration with sqlite db instead of lots of loose files. (0e1cd6d)
+* Updated readme.md to show current state of changes (00f6aff)
+* Fix typo in readme.md regarding 'calibration/test' (0bf738d)
+
 Version v1.1.0 - 2026-06-16 15:11
 ========================================
 * Breaking Changes: Moved to centralized configuration with sqlite db instead of lots of loose files. (0e1cd6d)
