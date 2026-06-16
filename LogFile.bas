@@ -675,10 +675,11 @@ Public Sub LoadOffsetConfig()
     If Dir$(FileName) <> "" Then
         On Error GoTo errhandler
         FileHandle = FreeFile
-        Open FileName For Input As #FileHandle
+        Open FileName For Binary Access Read As #FileHandle
 
         If LOF(FileHandle) > 0 Then
-            fileContent = Input(LOF(FileHandle), FileHandle)
+            fileContent = Space$(LOF(FileHandle))
+            Get #FileHandle, , fileContent
         Else
             fileContent = ""
         End If
