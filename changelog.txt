@@ -1,3 +1,9 @@
+Version v1.1.0 - 2026-06-16 15:11
+========================================
+* Breaking Changes: Moved to centralized configuration with sqlite db instead of lots of loose files. (0e1cd6d)
+* Updated readme.md to show current state of changes (00f6aff)
+* Fix typo in readme.md regarding 'calibration/test' (0bf738d)
+
 Version v1.0.42 - 2026-06-15 14:06
 ========================================
 * Added configuration file for non-standard processes to remove the need for hardcoded paths within the application. Added md files for explaining these to new users/developers. (fd7d713)

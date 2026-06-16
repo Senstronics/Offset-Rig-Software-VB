@@ -222,6 +222,11 @@ def sync_project(project_dir, fix_references_level=0):
             print("  Updated PWord.frm.twin")
         elif node.name == "Settings":
             settings_json = json.loads(node.data_or_children.decode("utf-8"))
+            
+            # Enforce build output executable name is OffsetCheck.exe
+            settings_json["project.buildPath"] = "${SourcePath}\\OffsetCheck.exe"
+            print("  Enforced build output path: ${SourcePath}\\OffsetCheck.exe")
+            
             refs = settings_json.get("project.references", [])
             new_refs = []
             for ref in refs:
