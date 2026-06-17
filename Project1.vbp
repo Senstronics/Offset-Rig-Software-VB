@@ -6,6 +6,7 @@ Reference=*\G{47ED5120-A398-11D4-BA58-000064657374}#1.0#0#C:\Program Files (x86)
 Reference=*\G{B0EDF154-910A-11D2-B632-00C04F79498E}#1.0#0#C:\Windows\System32\msvidctl.dll#MS Video Control 1.0 Type Library
 Reference=*\G{00020813-0000-0000-C000-000000000046}#1.9#0#..\..\..\Program Files (x86)\Microsoft Office\Root\Office16\EXCEL.EXE#Microsoft Excel 16.0 Object Library
 Object={648A5603-2C6E-101B-82B6-000000000014}#1.1#0; MSCOMM32.OCX
+Module=Constants; Constants.bas
 Form=MainForm.frm
 Module=ieeeevb; ieeevb.bas
 Module=DigitalMultimeterControl; DigitalMultimeterControl.bas

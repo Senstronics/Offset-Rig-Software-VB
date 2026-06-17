@@ -134,6 +134,7 @@ def sync_project(project_dir, fix_references_level=0):
     database_path = os.path.join(project_dir, "Database.bas")
     pci7250_path = os.path.join(project_dir, "PCI7250.bas")
     module1_path = os.path.join(project_dir, "Module1.bas")
+    constants_path = os.path.join(project_dir, "Constants.bas")
     
     mainfrm_path = os.path.join(project_dir, "MainForm.frm")
     cableusagefrm_path = os.path.join(project_dir, "CableUsage.frm")
@@ -163,6 +164,8 @@ def sync_project(project_dir, fix_references_level=0):
         pci7250_content = f.read()
     with open(module1_path, "rb") as f:
         module1_content = f.read()
+    with open(constants_path, "rb") as f:
+        constants_content = f.read()
         
     def update_nodes(node):
         if node.name == "LogFile.bas":
@@ -213,6 +216,10 @@ def sync_project(project_dir, fix_references_level=0):
             node.data_or_children = module1_content
             node.val = len(module1_content)
             print("  Updated Module1.bas")
+        elif node.name == "Constants.bas":
+            node.data_or_children = constants_content
+            node.val = len(constants_content)
+            print("  Updated Constants.bas")
         elif node.name == "MainForm.frm.twin":
             twin_data = make_frm_twin_content(node.data_or_children, mainfrm_path)
             node.data_or_children = twin_data

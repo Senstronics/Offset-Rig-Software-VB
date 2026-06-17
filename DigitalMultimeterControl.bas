@@ -291,14 +291,14 @@ Public Function CheckLoadOn() As Boolean
     ' check gnd to vout1
     RouteDMMByPath "102,105,135"
     reading = MeasureDMM("Ohms")
-    If reading < 100000 Then
+    If reading < LOAD_RESISTOR_OHMS Then
         CheckLoadOn = True
     End If
     
     ' check VS to vout1
     RouteDMMByPath "125,127,137"
     reading = MeasureDMM("Ohms")
-    If reading < 100000 Then
+    If reading < LOAD_RESISTOR_OHMS Then
         CheckLoadOn = True
     End If
 End Function

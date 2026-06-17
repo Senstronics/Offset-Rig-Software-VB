@@ -43,7 +43,6 @@ Public STCTARGET As String
 Public Result As Boolean
 Public SupplyCurrent As Double
 Public ConnectorType As String
-Private Const Vout2errorlimit As Double = 2
 Public SensorNumber As Double
 Public WorksOrder As String
 Public Vout2Only As Boolean
@@ -770,7 +769,7 @@ Private Sub FINDLIMITS()
             Vout2Target = (Span2 / VOUT2Span * (CurrentTemp - VOUT2Spana)) + Offset2
             MainForm.VOUT2TargetDisplay = Format$(Vout2Target, "0.0000")
             MainForm.VOUT2TempDisplay = Format$(CurrentTemp, "0.00" & " oC")
-            MainForm.VOUT2LimitDisplay = Vout2errorlimit & " %"
+            MainForm.VOUT2LimitDisplay = VOUT2_ERROR_LIMIT & " %"
         End If
     End If
     
@@ -854,7 +853,7 @@ Else
             MainForm.OFFSETDIFFDISPLAY = OffsetErrorPercent
         End If
 
-        If Abs(OffsetErrorPercent) > 0.4 Then 'Limits changed on 30/03/2022 ref ECR22-021
+        If Abs(OffsetErrorPercent) > OFFSET_ERROR_PERCENT_LIMIT Then 'Limits changed on 30/03/2022 ref ECR22-021
         'If OffsetErrorPercent < -0.2 Or OffsetErrorPercent > 0.3 Then
             MainForm.OFFSETFROMCALPASS.Visible = False
             MainForm.OFFSETFROMCALFAIL.Visible = True
@@ -913,7 +912,7 @@ Dim VSSTCReading As Double
 'take reading
     VSSTCReading = MeasureDigitalMultimeterOhms
         
-    If VSSTCReading > 100000000 Then
+    If VSSTCReading > PACK_INSULATION_OHMS Then
         MainForm.STCVSDisplay = Format$(VSSTCReading, "0.00" & " Ohms")
         MainForm.InsulationDisplay = "OVRFLW"
         MainForm.InsulationPass.Visible = True
@@ -949,13 +948,13 @@ Private Sub CHECKSTC()
 'take reading
     VSSTCReading = MeasureDigitalMultimeterOhms
 
-    If VSSTCReading > 40000000 Then
+    If VSSTCReading > STC_OVERFLOW_OHMS Then
         MainForm.STCVSDisplay = "OVRFLW"
     Else
         MainForm.STCVSDisplay = Format$(VSSTCReading, "0.00" & " Ohms")
     End If
     
-    If VSSTCReading > 40000000 Then
+    If VSSTCReading > STC_OVERFLOW_OHMS Then
         MainForm.STCVSPASS.Visible = True
         MainForm.STCVSFAIL.Visible = False
         STCVSResult = True
@@ -979,13 +978,13 @@ DoEvents
 'take reading
     GNDSTCReading = MeasureDigitalMultimeterOhms
 
-    If GNDSTCReading > 40000000 Then
+    If GNDSTCReading > STC_OVERFLOW_OHMS Then
         MainForm.STCGNDDisplay = "OVRFLW"
     Else
         MainForm.STCGNDDisplay = Format$(GNDSTCReading, "0.00" & " Ohms")
     End If
 
-    If GNDSTCReading > 40000000 Then
+    If GNDSTCReading > STC_OVERFLOW_OHMS Then
         MainForm.STCGNDPASS.Visible = True
         MainForm.STCGNDFAIL.Visible = False
         STCGndResult = True
@@ -1004,13 +1003,13 @@ DoEvents
 'take reading
     VOUT1STCReading = MeasureDigitalMultimeterOhms
 
-    If VOUT1STCReading > 40000000 Then
+    If VOUT1STCReading > STC_OVERFLOW_OHMS Then
         MainForm.STCVOUT1Display = "OVRFLW"
     Else
         MainForm.STCVOUT1Display = Format$(VOUT1STCReading, "0.00" & " Ohms")
     End If
 
-    If VOUT1STCReading > 40000000 Then
+    If VOUT1STCReading > STC_OVERFLOW_OHMS Then
         MainForm.STCVOUT1PASS.Visible = True
         MainForm.STCVOUT1FAIL.Visible = False
         STCV1Result = True
@@ -1033,17 +1032,17 @@ If Vout2STC = True Then
 'take reading
     VOUT2STCReading = MeasureDigitalMultimeterOhms
 
-    If VOUT2STCReading > 40000000 Then
+    If VOUT2STCReading > STC_OVERFLOW_OHMS Then
     MainForm.STCVOUT2Display = "OVRFLW"
     Else
-    VOUT2STCReading = VOUT2STCReading - 4.5
+    VOUT2STCReading = VOUT2STCReading - STC_PROBE_RESISTANCE
     If VOUT2STCReading < 0 Then VOUT2STCReading = 0
     MainForm.STCVOUT2Display = Format$(VOUT2STCReading, "0.00" & " Ohms")
     
     End If
 
     If MainForm.STCTargetDisplay = "OVRFLW" Then
-        If VOUT2STCReading > 40000000 Then
+        If VOUT2STCReading > STC_OVERFLOW_OHMS Then
             MainForm.STCVOUT2PASS.Visible = True
             MainForm.STCVOUT2FAIL.Visible = False
             STCV2Result = True
@@ -1119,7 +1118,7 @@ Dim Vout2Reading As Double
             End If
 'check output is less than 0.2v
         Else
-            If Vout2Reading > 4 Then
+            If Vout2Reading > SWITCH_HIGH_VOLTAGE Then
                 MainForm.VOUT2PASS.Visible = True
                 MainForm.VOUT2FAIL.Visible = False
             Else
@@ -1166,14 +1165,14 @@ Dim Vout2Reading As Double
         If BarcodeUnits = "B" Then
             FSPressure = BarcodeFSPressure
         Else
-            FSPressure = BarcodeFSPressure / 14.5
+            FSPressure = BarcodeFSPressure / PSI_TO_BAR
         End If
         
 
             SetPSU2 Vsupply
             
             If MainForm.PODCheck = 1 Then
-                Sleep 5000
+                Sleep POD_WAIT_MS
             End If
         
             Vout1Reading = MeasureDigitalMultimeterAmps
@@ -1210,18 +1209,18 @@ Dim Vout2Reading As Double
         If BarcodeUnits = "B" Then
             FSPressure = BarcodeFSPressure
         Else
-            FSPressure = BarcodeFSPressure / 14.5
+            FSPressure = BarcodeFSPressure / PSI_TO_BAR
         End If
              
         SetPSU2 Vsupply
              
         If MainForm.PODCheck = 1 Then
-            Sleep 5000
+            Sleep POD_WAIT_MS
         End If
                 
         Vout1Reading = MeasureDigitalMultimeterVolts
        
-        Vout1Reading = Vout1Reading - 0.005 ' fudge for cable resistance
+        Vout1Reading = Vout1Reading - CABLE_RESISTANCE_FUDGE ' fudge for cable resistance
        
         VerifySupplyCurrent
     End If
@@ -1262,7 +1261,7 @@ Dim SwitchPSUValue As Double
         Vout2Error = (Vout2Target - Vout2Reading) / Span2 * 100
         MainForm.VOUT2OUTPUTERRORDISPLAY = Format$(Vout2Error, "0.000")
         
-        If Abs(Vout2Error) > Vout2errorlimit Then
+        If Abs(Vout2Error) > VOUT2_ERROR_LIMIT Then
             MainForm.VOUT2PASS.Visible = False
             MainForm.VOUT2FAIL.Visible = True
             SensorStatus(MainForm.SensorID) = FailedTemp
@@ -1286,7 +1285,7 @@ Dim SwitchPSUValue As Double
             MainForm.VOUT2OutputDisplay = Format$(Vout2Reading, "0.0000")
         
             If (Left$(ThirdBarcodeFormatCheck, 1) = "0") Then
-                If Vout2Reading < 0.2 Then
+                If Vout2Reading < SWITCH_LOW_VOLTAGE Then
                     MainForm.VOUT2PASS.Visible = True
                     MainForm.VOUT2FAIL.Visible = False
                 Else
@@ -1297,7 +1296,7 @@ Dim SwitchPSUValue As Double
         'check output is less than 0.2v
             Else
                 'If Vout2Reading > Vsupply - 6 Then
-                If Vout2Reading > 4 Then
+                If Vout2Reading > SWITCH_HIGH_VOLTAGE Then
                     MainForm.VOUT2PASS.Visible = True
                     MainForm.VOUT2FAIL.Visible = False
                 Else
@@ -1323,7 +1322,7 @@ Dim SwitchPSUValue As Double
             MainForm.VOUT2OutputDisplay = Format$(Vout2Reading, "0.0000")
         
             If (Left$(ThirdBarcodeFormatCheck, 1) = "0") Then
-                If Vout2Reading < 0.2 Then
+                If Vout2Reading < SWITCH_LOW_VOLTAGE Then
                     MainForm.VOUT2PASS.Visible = True
                     MainForm.VOUT2FAIL.Visible = False
                 Else
@@ -1334,7 +1333,7 @@ Dim SwitchPSUValue As Double
         'check output is less than 0.2v
             Else
                 'If Vout2Reading > Vsupply - 1 Then
-                If Vout2Reading > 4 Then
+                If Vout2Reading > SWITCH_HIGH_VOLTAGE Then
                     MainForm.VOUT2PASS.Visible = True
                     MainForm.VOUT2FAIL.Visible = False
                 Else
@@ -1355,7 +1354,7 @@ Dim SwitchPSUValue As Double
         
             If (Left$(ThirdBarcodeFormatCheck, 1) = "0") Then
                 'If Vout2Reading > Vsupply - 1 Then
-                If Vout2Reading > 4 Then
+                If Vout2Reading > SWITCH_HIGH_VOLTAGE Then
                     MainForm.VOUT2SWPASS.Visible = True
                     MainForm.VOUT2SWFAIL.Visible = False
                 Else
@@ -1366,7 +1365,7 @@ Dim SwitchPSUValue As Double
     'check output is greater than 4v
     
             Else
-                If Vout2Reading < 0.2 Then
+                If Vout2Reading < SWITCH_LOW_VOLTAGE Then
                     MainForm.VOUT2SWPASS.Visible = True
                     MainForm.VOUT2SWFAIL.Visible = False
                 Else
@@ -1399,13 +1398,13 @@ Private Sub CHECKVOUT2ONLY()
 'take reading
     VSSTCReading = MeasureDigitalMultimeterOhms
 
-    If VSSTCReading > 40000000 Then
+    If VSSTCReading > STC_OVERFLOW_OHMS Then
         MainForm.STCVSDisplay = "OVRFLW"
     Else
         MainForm.STCVSDisplay = Format$(VSSTCReading, "0.00" & " Ohms")
     End If
 
-    If VSSTCReading > 40000000 Then
+    If VSSTCReading > STC_OVERFLOW_OHMS Then
         MainForm.STCVSPASS.Visible = True
         MainForm.STCVSFAIL.Visible = False
         STCVSResult = True
@@ -1425,14 +1424,14 @@ DoEvents
 'take reading
     GNDSTCReading = MeasureDigitalMultimeterOhms
 
-    If GNDSTCReading > 40000000 Then
+    If GNDSTCReading > STC_OVERFLOW_OHMS Then
         MainForm.STCGNDDisplay = "OVRFLW"
     Else
         MainForm.STCGNDDisplay = Format$(GNDSTCReading, "0.00" & " Ohms")
     End If
 
 
-    If GNDSTCReading > 40000000 Then
+    If GNDSTCReading > STC_OVERFLOW_OHMS Then
         MainForm.STCGNDPASS.Visible = True
         MainForm.STCGNDFAIL.Visible = False
         STCGndResult = True
@@ -1449,7 +1448,7 @@ DoEvents
 'take reading
     VOUT2STCReading = MeasureDigitalMultimeterOhms
 
-    If VOUT2STCReading > 40000000 Then
+    If VOUT2STCReading > STC_OVERFLOW_OHMS Then
         MainForm.STCVOUT2Display = "OVRFLW"
     Else
         VOUT2STCReading = VOUT2STCReading - 1
@@ -1458,7 +1457,7 @@ DoEvents
     End If
 
     If MainForm.STCTargetDisplay = "OVRFLW" Then
-        If VOUT2STCReading > 40000000 Then
+        If VOUT2STCReading > STC_OVERFLOW_OHMS Then
             MainForm.STCVOUT2PASS.Visible = True
             MainForm.STCVOUT2FAIL.Visible = False
             STCV2Result = True
@@ -1488,7 +1487,7 @@ DoEvents
         MainForm.VOUT2OutputDisplay = Format$(Vout2Reading, "0.0000")
     
         If (ThirdBarcodeFormatCheck = "000/100") Then
-            If Vout2Reading < 0.2 Then
+            If Vout2Reading < SWITCH_LOW_VOLTAGE Then
                 MainForm.VOUT2PASS.Visible = True
                 MainForm.VOUT2FAIL.Visible = False
             Else
@@ -1498,7 +1497,7 @@ DoEvents
             End If
 'check output is less than 0.2v
         Else
-            If Vout2Reading > 4 Then
+            If Vout2Reading > SWITCH_HIGH_VOLTAGE Then
                 MainForm.VOUT2PASS.Visible = True
                 MainForm.VOUT2FAIL.Visible = False
             Else
@@ -2065,7 +2064,7 @@ Public Sub TestSTC2()
 
 'take reading
     VSSTCReading = MeasureDigitalMultimeterOhms
-    VSSTCReading = VSSTCReading - 4.5
+    VSSTCReading = VSSTCReading - STC_PROBE_RESISTANCE
     MainForm.STCVSDisplay = VSSTCReading
     
     If VSSTCReading < 2 Then
@@ -2086,7 +2085,7 @@ DoEvents
 'take reading
     
     GNDSTCReading = MeasureDigitalMultimeterOhms
-    GNDSTCReading = GNDSTCReading - 4.5
+    GNDSTCReading = GNDSTCReading - STC_PROBE_RESISTANCE
     MainForm.STCGNDDisplay = GNDSTCReading
     
     If GNDSTCReading < 2 Then
@@ -2105,7 +2104,7 @@ DoEvents
 'take reading
     
     VOUT1STCReading = MeasureDigitalMultimeterOhms
-    VOUT1STCReading = VOUT1STCReading - 4.5
+    VOUT1STCReading = VOUT1STCReading - STC_PROBE_RESISTANCE
     MainForm.STCVOUT1Display = VOUT1STCReading
     
     If VOUT1STCReading < 2 Then
@@ -2126,7 +2125,7 @@ DoEvents
 'take reading
     
     VOUT2STCReading = MeasureDigitalMultimeterOhms
-    VOUT2STCReading = VOUT2STCReading - 4.5
+    VOUT2STCReading = VOUT2STCReading - STC_PROBE_RESISTANCE
     MainForm.STCVOUT2Display = VOUT2STCReading
     
     If VOUT2STCReading < 2 Then
