@@ -2287,22 +2287,7 @@ Private Sub Form_Unload(cancel As Integer)
     DB_Close
 End Sub
 
-Public Sub EmptyFields()
-
-    STCVSDisplay = ""
-    STCGNDDisplay = ""
-    STCVOUT1Display = ""
-    STCVOUT2Display = ""
-    VOUT1OutputDisplay = ""
-    VOUT1OUTPUTERRORDISPLAY = ""
-    VOUT2OutputDisplay = ""
-    VOUT2OUTPUTERRORDISPLAY = ""
-    CurrentDisplay = ""
-    InsulationDisplay = ""
-    OffsetFromCalDisplay = ""
-    Vout1OriginalOutputDisplay = ""
-    VoutDiffDisplay = ""
-    OFFSETDIFFDISPLAY = ""
+Public Sub ResetAllPassFailIcons()
     PASSED.Visible = False
     FAILED.Visible = False
     OFFSETFROMCALPASS.Visible = False
@@ -2337,89 +2322,90 @@ Public Sub EmptyFields()
     RestrictorWeldedPass.Visible = False
     UnionPass.Visible = False
     UnionFail.Visible = False
-    
 End Sub
-Public Sub ClearDownForOffsetOnly()
 
-    STCVSDisplay.Visible = False
-    STCGNDDisplay.Visible = False
-    STCVOUT1Display.Visible = False
-    STCVOUT2Display.Visible = False
-    VOUT2OUTPUTLABEL.Visible = False
-    VOUT2OutputDisplay.Visible = False
-    VOUT2OUTPUTERRORDISPLAY.Visible = False
-    VOUT2TARGETLABEL.Visible = False
-    VOUT2TargetDisplay.Visible = False
-    VOUT2TempDisplay.Visible = False
-    VOUT2LimitDisplay.Visible = False
-    VOUT2ERRORLIMITLABEL.Visible = False
-    STCTargetDisplay.Visible = False
-    STCVOUT2LABEL.Visible = False
-    STCVSLabel.Visible = False
-    STCVOUT1Label.Visible = False
-    STCGNDLabel.Visible = False
-    STCOUTPUTLabel.Visible = False
-End Sub
-Public Sub ClearDownForPackOnly()
-
-    LabelScanWOLAbel.Visible = False
-    VOUT2TEMPLABEL.Visible = False
-    LoadValueDisplay.Visible = False
-    LoadTypeDisplay.Visible = False
-    LoadLabel.Visible = False
-    VOUT2TARGETLABEL.Visible = False
-    VOUT2TargetDisplay.Visible = False
-    VOUT2TempDisplay.Visible = False
-    VOUT2ERRORLIMITLABEL.Visible = False
-    VOUT2LimitDisplay.Visible = False
-    ConnectorLabel.Visible = False
-    ConnectorTypeDisplay.Visible = False
-    BoardTypeLabel.Visible = False
-    BoardTypeDisplay.Visible = False
-    STCOUTPUTLabel.Visible = False
-    STCTargetDisplay.Visible = False
-    VOUT1ERRORLABEL.Visible = False
-    LimitPercentDisplay.Visible = False
-    VOUT1OUTPUTERRORDISPLAY.Visible = False
-
+Public Sub ResetMeasurementDisplays()
+    STCVSDisplay = ""
+    STCGNDDisplay = ""
+    STCVOUT1Display = ""
+    STCVOUT2Display = ""
+    VOUT1OutputDisplay = ""
+    VOUT1OUTPUTERRORDISPLAY = ""
+    VOUT2OutputDisplay = ""
+    VOUT2OUTPUTERRORDISPLAY = ""
+    CurrentDisplay = ""
+    InsulationDisplay = ""
+    OffsetFromCalDisplay = ""
+    Vout1OriginalOutputDisplay = ""
+    VoutDiffDisplay = ""
+    OFFSETDIFFDISPLAY = ""
+    ORingColourDisplay = ""
+    CableNumberDisplay = ""
+    RigDisplay = ""
     
+    LoadValueDisplay = ""
+    OffsetTargetDisplay = ""
+    VOUT2TargetDisplay = ""
+    VOUT2TempDisplay = ""
+    VOUT2LimitDisplay = ""
+    LowerLimitDisplay = ""
+    UpperLimitDisplay = ""
+    LimitPercentDisplay = ""
+    BoardTypeDisplay = ""
+    ConnectorTypeDisplay = ""
+    STCTargetDisplay = ""
+    ORingDisplay = ""
+    RestrictorDisplay = ""
+    UnionCodeDisplay = ""
+    CurrentDisplay = ""
 End Sub
-Public Sub ClearDown()
 
-Dim i As Integer
-    
-    For i = 1 To 2000       'increased from 800 by DW
+Public Sub ResetBusinessState()
+    Dim i As Integer
+    For i = 1 To 2000
         SensorStatus(i) = PASSED
     Next
-
+    
+    WorksOrderBarcode = ""
+    FirstMCSBarcode = ""
+    SecondMCSBarcode = ""
+    ThirdMCSBarcode = ""
+    PartNumber = ""
+    
+    LimitPercent = UNSET_VALUE
+    Limit = UNSET_VALUE
+    Offset = UNSET_VALUE
+    FullScale = UNSET_VALUE
+    ZeroPressure = UNSET_VALUE
+    FSPressure = UNSET_VALUE
+    BarcodeUnits = UNSET_VALUE
+    BarcodeSpan = UNSET_VALUE
+    BarcodeOffset = UNSET_VALUE
+    BarcodeFullScale = UNSET_VALUE
+    BarcodeZeroPressure = UNSET_VALUE
+    BarcodeFSPressure = UNSET_VALUE
+    PressureSpan = UNSET_VALUE
+    
+    numberofcycles = 0
+    PassedBox = 0
+    FailedBox = 0
+    SensorID = 0
+    PercentBox = 0
     MainForm.PercentBox.BackColor = &HFFFFFF
-    PASSED.Visible = False
-    FAILED.Visible = False
-    STCVSFAIL.Visible = False
-    STCGNDFAIL.Visible = False
-    STCVOUT1FAIL.Visible = False
-    STCVOUT2FAIL.Visible = False
-    VOUT1FAIL.Visible = False
-    VOUT2FAIL.Visible = False
-    STCVSPASS.Visible = False
-    STCGNDPASS.Visible = False
-    STCVOUT1PASS.Visible = False
-    STCVOUT2PASS.Visible = False
-    VOUT2SWPASS.Visible = False
-    VOUT2SWFAIL.Visible = False
-    OffDifPass.Visible = False
-    OffDifFail.Visible = False
-    VOUT1PASS.Visible = False
-    VOUT2PASS.Visible = False
-    CurrentFail.Visible = False
-    CurrentPass.Visible = False
-    InsulationPass.Visible = False
-    InsulationFail.Visible = False
-    OringPass.Visible = False
-    OringFail.Visible = False
-    RestrictorFail.Visible = False
-    RestrictorPass.Visible = False
+End Sub
+
+Public Sub SetVisibilityForMode(ByVal Mode As String)
+    ' Reset all to standard visible
+    LabelScanWOLAbel.Visible = True
+    VOUT2TEMPLABEL.Visible = True
+    LoadValueDisplay.Visible = True
+    LoadTypeDisplay.Visible = True
     LoadLabel.Visible = True
+    VOUT2TARGETLABEL.Visible = True
+    VOUT2TargetDisplay.Visible = True
+    VOUT2TempDisplay.Visible = True
+    VOUT2ERRORLIMITLABEL.Visible = True
+    VOUT2LimitDisplay.Visible = True
     ConnectorLabel.Visible = True
     ConnectorTypeDisplay.Visible = True
     BoardTypeLabel.Visible = True
@@ -2458,6 +2444,8 @@ Dim i As Integer
     VOUT1ERRORLABEL.Visible = True
     LimitPercentDisplay.Visible = True
     VOUT1OUTPUTERRORDISPLAY.Visible = True
+    
+    ' Default Hidden Elements
     CurrentDisplay.Visible = False
     CurrentLabel.Visible = False
     VoltageLabel.Visible = False
@@ -2466,72 +2454,69 @@ Dim i As Integer
     OFFSETFROMCALLabel.Visible = False
     OffsetFromCalDisplay.Visible = False
     OFFSETDIFFDISPLAY.Visible = False
-    OFFSETFROMCALPASS.Visible = False
-    OFFSETFROMCALFAIL.Visible = False
-    RestrictorFail.Visible = False
-    RestrictorPass.Visible = False
-    OringFail.Visible = False
-    OringPass.Visible = False
-    RestrictorWeldedFail.Visible = False
-    RestrictorWeldedPass.Visible = False
-    UnionPass.Visible = False
-    UnionFail.Visible = False
     
-    WorksOrderBarcode = ""
-    FirstMCSBarcode = ""
-    SecondMCSBarcode = ""
-    ThirdMCSBarcode = ""
-    PartNumber = ""
-    
-    LoadValueDisplay = ""
-    OffsetTargetDisplay = ""
-    VOUT2TargetDisplay = ""
-    VOUT2TempDisplay = ""
-    VOUT2LimitDisplay = ""
-    LowerLimitDisplay = ""
-    UpperLimitDisplay = ""
-    LimitPercentDisplay = ""
-    BoardTypeDisplay = ""
-    ConnectorTypeDisplay = ""
-    STCTargetDisplay = ""
-    ORingDisplay = ""
-    RestrictorDisplay = ""
-    UnionCodeDisplay = ""
-    OffsetFromCalDisplay = ""
-    OFFSETDIFFDISPLAY = ""
-    CurrentDisplay = ""
-    STCVSDisplay = ""
-    STCGNDDisplay = ""
-    STCVOUT1Display = ""
-    STCVOUT2Display = ""
-    VOUT1OutputDisplay = ""
-    VOUT1OUTPUTERRORDISPLAY = ""
-    VOUT2OutputDisplay = ""
-    VOUT2OUTPUTERRORDISPLAY = ""
-    ORingColourDisplay = ""
-    CableNumberDisplay = ""
-    RigDisplay = ""
-    LimitPercent = UNSET_VALUE
-    Limit = UNSET_VALUE
-    Offset = UNSET_VALUE
-    FullScale = UNSET_VALUE
-    ZeroPressure = UNSET_VALUE
-    FSPressure = UNSET_VALUE
-    BarcodeUnits = UNSET_VALUE
-    BarcodeSpan = UNSET_VALUE
-    BarcodeOffset = UNSET_VALUE
-    BarcodeFullScale = UNSET_VALUE
-    BarcodeZeroPressure = UNSET_VALUE
-    BarcodeFSPressure = UNSET_VALUE
-    PressureSpan = UNSET_VALUE
-    numberofcycles = 0
-    PassedBox = 0
-    FailedBox = 0
-    SensorID = 0
-    PercentBox = 0
-   
-
+    If Mode = "OffsetOnly" Then
+        STCVSDisplay.Visible = False
+        STCGNDDisplay.Visible = False
+        STCVOUT1Display.Visible = False
+        STCVOUT2Display.Visible = False
+        VOUT2OUTPUTLABEL.Visible = False
+        VOUT2OutputDisplay.Visible = False
+        VOUT2OUTPUTERRORDISPLAY.Visible = False
+        VOUT2TARGETLABEL.Visible = False
+        VOUT2TargetDisplay.Visible = False
+        VOUT2TempDisplay.Visible = False
+        VOUT2LimitDisplay.Visible = False
+        VOUT2ERRORLIMITLABEL.Visible = False
+        STCTargetDisplay.Visible = False
+        STCVOUT2LABEL.Visible = False
+        STCVSLabel.Visible = False
+        STCVOUT1Label.Visible = False
+        STCGNDLabel.Visible = False
+        STCOUTPUTLabel.Visible = False
+    ElseIf Mode = "PackOnly" Then
+        LabelScanWOLAbel.Visible = False
+        VOUT2TEMPLABEL.Visible = False
+        LoadValueDisplay.Visible = False
+        LoadTypeDisplay.Visible = False
+        LoadLabel.Visible = False
+        VOUT2TARGETLABEL.Visible = False
+        VOUT2TargetDisplay.Visible = False
+        VOUT2TempDisplay.Visible = False
+        VOUT2ERRORLIMITLABEL.Visible = False
+        VOUT2LimitDisplay.Visible = False
+        ConnectorLabel.Visible = False
+        ConnectorTypeDisplay.Visible = False
+        BoardTypeLabel.Visible = False
+        BoardTypeDisplay.Visible = False
+        STCOUTPUTLabel.Visible = False
+        STCTargetDisplay.Visible = False
+        VOUT1ERRORLABEL.Visible = False
+        LimitPercentDisplay.Visible = False
+        VOUT1OUTPUTERRORDISPLAY.Visible = False
+    End If
 End Sub
+
+Public Sub EmptyFields()
+    Call ResetMeasurementDisplays
+    Call ResetAllPassFailIcons
+End Sub
+
+Public Sub ClearDownForOffsetOnly()
+    Call SetVisibilityForMode("OffsetOnly")
+End Sub
+
+Public Sub ClearDownForPackOnly()
+    Call SetVisibilityForMode("PackOnly")
+End Sub
+
+Public Sub ClearDown()
+    Call ResetBusinessState
+    Call ResetAllPassFailIcons
+    Call ResetMeasurementDisplays
+    Call SetVisibilityForMode("Standard")
+End Sub
+
 Private Sub ResetCableUsage_Click()
     PassForm.Show
     MainForm.Hide

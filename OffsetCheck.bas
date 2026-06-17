@@ -216,6 +216,105 @@ Private Sub SplitLiveWorkOrder(ByVal s As String, ByRef WO As String, ByRef PN A
         BC3 = ""
     End If
 End Sub
+
+Private Function LookupCableAndVerify(ByVal CableTypeVal As String, ByVal IsPackOnly As Boolean, ByRef OutChannelNum As Long) As Boolean
+    OutChannelNum = DB_GetCableChannel(CableTypeVal)
+    If OutChannelNum = 0 Then
+        MsgBox "Connector Code Not In Cable List. See Engineering"
+        MainForm.ClearDown
+        LookupCableAndVerify = False
+        Exit Function
+    End If
+    
+    MainForm.CableNumberDisplay = CStr(OutChannelNum)
+    Dim MyValue As String
+    MyValue = InputBox("PLEASE SCAN CABLE " & OutChannelNum, "", "", 7000, 5000)
+    MainForm.CableNumberDisplay = MyValue
+    
+    Dim ScannedCable As String
+    If IsPackOnly Then
+        If Len(MyValue) = 2 Then
+            ScannedCable = Left$(MyValue, 2)
+        Else
+            ScannedCable = Left$(MyValue, 1)
+        End If
+    Else
+        ScannedCable = MyValue
+    End If
+    
+    If CStr(OutChannelNum) <> ScannedCable Then
+        MsgBox "CABLE DOES NOT MATCH. CHECK CABLE & TRY AGAIN"
+        MainForm.ClearDown
+        LookupCableAndVerify = False
+        Exit Function
+    End If
+    
+    LookupCableAndVerify = True
+End Function
+
+Private Function LookupUnionAndSetProgram(ByVal UnionType As String, ByRef OutProgNum As Long) As Boolean
+    OutProgNum = DB_GetUnionFittingID(UnionType)
+    If OutProgNum > 0 Then
+        VisionProgram = OutProgNum
+        MainForm.ProgramDisplay = VisionProgram
+        ChangeVisionProgram VisionProgram
+        LookupUnionAndSetProgram = True
+    Else
+        MsgBox "CAN'T FIND UNION TYPE. CONTACT ENGINEERING"
+        MainForm.ClearDown
+        LookupUnionAndSetProgram = False
+    End If
+End Function
+
+Private Function LookupConnectorAndSetSTC(ByVal ConnType As String) As Boolean
+    Dim ConnName As String
+    Dim IsFourPinVal As Boolean
+    If DB_GetConnector(ConnType, ConnName, IsFourPinVal) Then
+        MainForm.ConnectorTypeDisplay = ConnName
+        If OffsetOnly = False Then
+            If IsFourPinVal Then
+                Vout2STC = True
+                MainForm.STCVOUT2LABEL.Visible = True
+                MainForm.STCVOUT2Display.Visible = True
+            Else
+                Vout2STC = False
+                MainForm.STCOUTPUTLabel.Visible = False
+                MainForm.STCTargetDisplay.Visible = False
+                MainForm.STCVOUT2LABEL.Visible = False
+                MainForm.STCVOUT2Display.Visible = False
+            End If
+        End If
+        LookupConnectorAndSetSTC = True
+    Else
+        MainForm.ConnectorTypeDisplay = "Unknown"
+        MsgBox "UNKNOWN CONNECTOR SEE ENGINEERING"
+        MainForm.ClearDown
+        LookupConnectorAndSetSTC = False
+    End If
+End Function
+
+Private Function LookupBoardAndSetSTCTarget(ByVal BoardTypeVal As String, ByVal ConnType As String) As Boolean
+    Dim ReqSTC As Boolean
+    Dim PinOutSwitch As String
+    If DB_GetBoardType(BoardTypeVal, PinOutSwitch, ReqSTC) Then
+        MainForm.BoardTypeDisplay = BoardTypeVal
+        If Not ReqSTC Then
+            MainForm.STCTargetDisplay = "OVRFLW"
+        Else
+            MainForm.STCTargetDisplay = "Less Than 2 ohms"
+            If ConnType = "XY" Then
+                MainForm.STCTargetDisplay = "OVRFLW"
+            End If
+        End If
+        LookupBoardAndSetSTCTarget = True
+    Else
+        MainForm.BoardTypeDisplay = "Unknown"
+        MsgBox "UNKNOWN BOARDTYPE SEE ENGINEERING"
+        MainForm.ClearDown
+        LookupBoardAndSetSTCTarget = False
+    End If
+End Function
+
 Public Function CheckDetails()
 
 Dim i As Integer
@@ -290,115 +389,31 @@ Dim IsFourPinVal As Boolean
         
         MainForm.UnionCodeDisplay = MCSUnionType
         
-        ProgNum = DB_GetUnionFittingID(MCSUnionType)
-        If ProgNum > 0 Then
-            VisionProgram = ProgNum
-            MainForm.ProgramDisplay = VisionProgram
-        Else
-            MsgBox "CAN'T FIND UNION TYPE. CONTACT ENGINEERING"
-            MainForm.ClearDown
-            Exit Function
-        End If
-        
-        ChangeVisionProgram VisionProgram
+        If Not LookupUnionAndSetProgram(MCSUnionType, ProgNum) Then Exit Function
         
         If PackOnly And CurrentRoute.RequireVerification Then
-         
+          
             If RestrictorReq Then
                 MainForm.RestrictorDisplay = "Yes"
             Else
                 MainForm.RestrictorDisplay = "No"
             End If
              
-        ChannelNum = DB_GetCableChannel(CableType)
-        If ChannelNum = 0 Then
-            MsgBox "Connector Code Not In Cable List. See Engineering"
-            MainForm.ClearDown
-            Exit Function
-        End If
-        
-        MainForm.CableNumberDisplay = CStr(ChannelNum)
-        MyValue = InputBox("PLEASE SCAN CABLE " & ChannelNum, "", "", 7000, 5000)
-        MainForm.CableNumberDisplay = MyValue
-        
-        If Len(MyValue) = 2 Then
-            ScannedCableCode = Left(MyValue, 2)
-        Else
-            ScannedCableCode = Left(MyValue, 1)
-        End If
-        
-        If CStr(ChannelNum) <> ScannedCableCode Then
-            MsgBox "CABLE DOES NOT MATCH. CHECK CABLE & TRY AGAIN"
-            MainForm.ClearDown
-            Exit Function
-        End If
-        
-            i = 1
-        If DB_GetConnector(ConnectorType, ConnName, IsFourPinVal) Then
-            MainForm.ConnectorTypeDisplay = ConnName
-            If OffsetOnly = False Then
-                If IsFourPinVal Then
-                    Vout2STC = True
-                    MainForm.STCVOUT2LABEL.Visible = True
-                    MainForm.STCVOUT2Display.Visible = True
-                Else
-                    Vout2STC = False
-                    MainForm.STCOUTPUTLabel.Visible = False
-                    MainForm.STCTargetDisplay.Visible = False
-                    MainForm.STCVOUT2LABEL.Visible = False
-                    MainForm.STCVOUT2Display.Visible = False
-                End If
-            End If
-        Else
-            MainForm.ConnectorTypeDisplay = "Unknown"
-            MsgBox "UNKNOWN CONNECTOR SEE ENGINEERING"
-            MainForm.ClearDown
-            Exit Function
-        End If
+            If Not LookupCableAndVerify(CableType, True, ChannelNum) Then Exit Function
             
+            If Not LookupConnectorAndSetSTC(ConnectorType) Then Exit Function
+                
             If MCSMatingConnector = "M" Or MCSMatingConnector = "H" Then
                 MsgBox " PLEASE STAMP FIT MATING CONNECTOR ON FRONT OF WORKS ORDER"
             End If
             
-        If DB_GetBoardType(BoardType, PinOutSwitch, ReqSTC) Then
-            MainForm.BoardTypeDisplay = BoardType
-            If Not ReqSTC Then
-                MainForm.STCTargetDisplay = "OVRFLW"
-            Else
-                MainForm.STCTargetDisplay = "Less Than 2 ohms"
-                If ConnectorType = "XY" Then
-                    MainForm.STCTargetDisplay = "OVRFLW"
-                End If
-            End If
-        Else
-            MainForm.BoardTypeDisplay = "Unknown"
-            MsgBox "UNKNOWN BOARDTYPE SEE ENGINEERING"
-            MainForm.ClearDown
-            Exit Function
-        End If
+            If Not LookupBoardAndSetSTCTarget(BoardType, ConnectorType) Then Exit Function
         End If
      End If
      
      If PackOnly = False Then
             
-        ChannelNum = DB_GetCableChannel(CableType)
-        If ChannelNum = 0 Then
-            MsgBox "Connector Code Not In Cable List. See Engineering"
-            MainForm.ClearDown
-            Exit Function
-        End If
-        
-        MainForm.CableNumberDisplay = CStr(ChannelNum)
-        MyValue = InputBox("PLEASE SCAN CABLE " & ChannelNum, "", "", 7000, 5000)
-        MainForm.CableNumberDisplay = MyValue
-        
-        ScannedCableCode = MyValue
-        
-        If CStr(ChannelNum) <> ScannedCableCode Then
-            MsgBox "CABLE DOES NOT MATCH. CHECK CABLE & TRY AGAIN"
-            MainForm.ClearDown
-            Exit Function
-        End If
+        If Not LookupCableAndVerify(CableType, False, ChannelNum) Then Exit Function
                   
         Dim CurrentUsage As Long
         Dim UsageLimit As Long
@@ -410,39 +425,9 @@ Dim IsFourPinVal As Boolean
              
         MainForm.UnionCodeDisplay = MCSUnionType
         
-        ProgNum = DB_GetUnionFittingID(MCSUnionType)
-        If ProgNum > 0 Then
-            VisionProgram = ProgNum
-            MainForm.ProgramDisplay = VisionProgram
-        Else
-            MsgBox "CAN'T FIND UNION TYPE. CONTACT ENGINEERING"
-            MainForm.ClearDown
-            Exit Function
-        End If
-        
-        ChangeVisionProgram VisionProgram
+        If Not LookupUnionAndSetProgram(MCSUnionType, ProgNum) Then Exit Function
                    
-        If DB_GetConnector(ConnectorType, ConnName, IsFourPinVal) Then
-            MainForm.ConnectorTypeDisplay = ConnName
-            If OffsetOnly = False Then
-                If IsFourPinVal Then
-                    Vout2STC = True
-                    MainForm.STCVOUT2LABEL.Visible = True
-                    MainForm.STCVOUT2Display.Visible = True
-                Else
-                    Vout2STC = False
-                    MainForm.STCOUTPUTLabel.Visible = False
-                    MainForm.STCTargetDisplay.Visible = False
-                    MainForm.STCVOUT2LABEL.Visible = False
-                    MainForm.STCVOUT2Display.Visible = False
-                End If
-            End If
-        Else
-            MainForm.ConnectorTypeDisplay = "Unknown"
-            MsgBox "UNKNOWN CONNECTOR SEE ENGINEERING"
-            MainForm.ClearDown
-            Exit Function
-        End If
+        If Not LookupConnectorAndSetSTC(ConnectorType) Then Exit Function
     
         If Vout2 Then
             Vout2STC = False
@@ -458,7 +443,6 @@ Dim IsFourPinVal As Boolean
         End If
              
         If ConnectorType = "XJ" Or ConnectorType = "XR" Then
-        
             If MCSUnionType = "S05" Then
                 Vout2STC = False ' common rail
                 MainForm.STCOUTPUTLabel.Visible = False
@@ -483,22 +467,7 @@ Dim IsFourPinVal As Boolean
             MsgBox " PLEASE STAMP FIT MATING CONNECTOR ON FRONT OF WORKS ORDER"
         End If
         
-        If DB_GetBoardType(BoardType, PinOutSwitch, ReqSTC) Then
-            MainForm.BoardTypeDisplay = BoardType
-            If Not ReqSTC Then
-                MainForm.STCTargetDisplay = "OVRFLW"
-            Else
-                MainForm.STCTargetDisplay = "Less Than 2 ohms"
-                If ConnectorType = "XY" Then
-                    MainForm.STCTargetDisplay = "OVRFLW"
-                End If
-            End If
-        Else
-            MainForm.BoardTypeDisplay = "Unknown"
-            MsgBox "UNKNOWN BOARDTYPE SEE ENGINEERING"
-            MainForm.ClearDown
-            Exit Function
-        End If
+        If Not LookupBoardAndSetSTCTarget(BoardType, ConnectorType) Then Exit Function
     
         If BoardType = "X5" Then
             Vout2 = False
@@ -564,7 +533,6 @@ Dim IsFourPinVal As Boolean
         End If
 
         If LoadValue = "000" Then
-        
             If CheckLoadOn = True Then
                 MsgBox "REMOVE RESISTOR CONNECTED"
                 MainForm.LoadValueDisplay.Visible = False
@@ -590,7 +558,6 @@ Dim IsFourPinVal As Boolean
             MainForm.VOUT2TARGETLABEL.Visible = True
             MainForm.VOUT2OUTPUTERRORDISPLAY.Visible = True
             MainForm.VOUT2ERRORLIMITLABEL.Visible = True
-            
         Else
             MainForm.VOUT2OUTPUTLABEL.Visible = False
             MainForm.VOUT2OutputDisplay.Visible = False
@@ -604,7 +571,6 @@ Dim IsFourPinVal As Boolean
         End If
     
         FINDLIMITS
-        
     End If
     
     If OffsetOnly = True Or PackOnly = True Then
@@ -625,9 +591,7 @@ Dim IsFourPinVal As Boolean
         If FindPODInExcelFile = True Then
             MainForm.PODCheck = 1
         End If
-        
         FindResults
-        
     End If
        
 End Function
@@ -930,6 +894,50 @@ Dim VSSTCReading As Double
     End If
     
 End Sub
+
+Private Sub MeasureSTC(ByVal Channel As String, ByRef OutReading As Double, _
+                       ByVal PassCtrl As Control, ByVal FailCtrl As Control, _
+                       ByVal DisplayCtrl As Control, ByRef ResultFlag As Boolean)
+    RouteDMM Channel
+    If Channel = "STCVs" Then
+        Dim Dummy As Double
+        Dummy = MeasureDigitalMultimeterOhms
+        Sleep 100
+    End If
+    OutReading = MeasureDigitalMultimeterOhms
+    
+    If OutReading > STC_OVERFLOW_OHMS Then
+        DisplayCtrl.Caption = "OVRFLW"
+        PassCtrl.Visible = True
+        FailCtrl.Visible = False
+        ResultFlag = True
+    Else
+        DisplayCtrl.Caption = Format$(OutReading, "0.00 Ohms")
+        PassCtrl.Visible = False
+        FailCtrl.Visible = True
+        SensorStatus(MainForm.SensorID) = FailedSTC
+        ResultFlag = False
+    End If
+    DoEvents
+End Sub
+
+Private Sub CheckSwitchOutput(ByVal Reading As Double, ByVal PassCtrl As Control, _
+                               ByVal FailCtrl As Control, ByVal ExpectLow As Boolean, _
+                               Optional ByVal LowThreshold As Double = 0.2, _
+                               Optional ByVal HighThreshold As Double = 4#)
+    Dim IsPassed As Boolean
+    If ExpectLow Then
+        IsPassed = (Reading < LowThreshold)
+    Else
+        IsPassed = (Reading > HighThreshold)
+    End If
+    
+    PassCtrl.Visible = IsPassed
+    FailCtrl.Visible = Not IsPassed
+    If Not IsPassed Then SensorStatus(MainForm.SensorID) = FailedSwitch
+End Sub
+
+
 Private Sub CHECKSTC()
 
     Dim VSSTCReading As Double
@@ -937,138 +945,53 @@ Private Sub CHECKSTC()
     Dim VOUT1STCReading As Double
     Dim VOUT2STCReading As Double
     
-'connect VS to stc
-    
-    RouteDMM "STCVs"
-    
-          
-'dummy reading
-    VSSTCReading = MeasureDigitalMultimeterOhms
-    Sleep 100
-'take reading
-    VSSTCReading = MeasureDigitalMultimeterOhms
-
-    If VSSTCReading > STC_OVERFLOW_OHMS Then
-        MainForm.STCVSDisplay = "OVRFLW"
-    Else
-        MainForm.STCVSDisplay = Format$(VSSTCReading, "0.00" & " Ohms")
-    End If
-    
-    If VSSTCReading > STC_OVERFLOW_OHMS Then
-        MainForm.STCVSPASS.Visible = True
-        MainForm.STCVSFAIL.Visible = False
-        STCVSResult = True
-    Else
-        MainForm.STCVSPASS.Visible = False
-        MainForm.STCVSFAIL.Visible = True
-        SensorStatus(MainForm.SensorID) = FailedSTC
-        STCVSResult = False
-    End If
-
-DoEvents
-
-'connect GND to stc
-
-    RouteDMM "STCGnd"
+    Call MeasureSTC("STCVs", VSSTCReading, MainForm.STCVSPASS, MainForm.STCVSFAIL, MainForm.STCVSDisplay, STCVSResult)
 
     If BoardType = "HY" Then
-    Sleep 300
+        Sleep 300
     End If
 
-'take reading
-    GNDSTCReading = MeasureDigitalMultimeterOhms
+    Call MeasureSTC("STCGnd", GNDSTCReading, MainForm.STCGNDPASS, MainForm.STCGNDFAIL, MainForm.STCGNDDisplay, STCGndResult)
 
-    If GNDSTCReading > STC_OVERFLOW_OHMS Then
-        MainForm.STCGNDDisplay = "OVRFLW"
-    Else
-        MainForm.STCGNDDisplay = Format$(GNDSTCReading, "0.00" & " Ohms")
-    End If
+    Call MeasureSTC("STCVout1", VOUT1STCReading, MainForm.STCVOUT1PASS, MainForm.STCVOUT1FAIL, MainForm.STCVOUT1Display, STCV1Result)
 
-    If GNDSTCReading > STC_OVERFLOW_OHMS Then
-        MainForm.STCGNDPASS.Visible = True
-        MainForm.STCGNDFAIL.Visible = False
-        STCGndResult = True
-    Else
-        MainForm.STCGNDPASS.Visible = False
-        MainForm.STCGNDFAIL.Visible = True
-        SensorStatus(MainForm.SensorID) = FailedSTC
-        STCGndResult = False
-    End If
-
-DoEvents
-'connect Vout1 to stc
-
-    RouteDMM "STCVout1"
-    
-'take reading
-    VOUT1STCReading = MeasureDigitalMultimeterOhms
-
-    If VOUT1STCReading > STC_OVERFLOW_OHMS Then
-        MainForm.STCVOUT1Display = "OVRFLW"
-    Else
-        MainForm.STCVOUT1Display = Format$(VOUT1STCReading, "0.00" & " Ohms")
-    End If
-
-    If VOUT1STCReading > STC_OVERFLOW_OHMS Then
-        MainForm.STCVOUT1PASS.Visible = True
-        MainForm.STCVOUT1FAIL.Visible = False
-        STCV1Result = True
-    Else
-        MainForm.STCVOUT1PASS.Visible = False
-        MainForm.STCVOUT1FAIL.Visible = True
-        SensorStatus(MainForm.SensorID) = FailedSTC
-        STCV1Result = False
-    End If
-
-DoEvents
-
-
-If Vout2STC = True Then
-
-'connect Vout2 to stc
-
-    RouteDMM "STCVout2"
-    
-'take reading
-    VOUT2STCReading = MeasureDigitalMultimeterOhms
-
-    If VOUT2STCReading > STC_OVERFLOW_OHMS Then
-    MainForm.STCVOUT2Display = "OVRFLW"
-    Else
-    VOUT2STCReading = VOUT2STCReading - STC_PROBE_RESISTANCE
-    If VOUT2STCReading < 0 Then VOUT2STCReading = 0
-    MainForm.STCVOUT2Display = Format$(VOUT2STCReading, "0.00" & " Ohms")
-    
-    End If
-
-    If MainForm.STCTargetDisplay = "OVRFLW" Then
+    If Vout2STC = True Then
+        RouteDMM "STCVout2"
+        VOUT2STCReading = MeasureDigitalMultimeterOhms
+        
         If VOUT2STCReading > STC_OVERFLOW_OHMS Then
-            MainForm.STCVOUT2PASS.Visible = True
-            MainForm.STCVOUT2FAIL.Visible = False
-            STCV2Result = True
+            MainForm.STCVOUT2Display = "OVRFLW"
         Else
-            MainForm.STCVOUT2PASS.Visible = False
-            MainForm.STCVOUT2FAIL.Visible = True
-            SensorStatus(MainForm.SensorID) = FailedSTC
-            STCV2Result = False
+            VOUT2STCReading = VOUT2STCReading - STC_PROBE_RESISTANCE
+            If VOUT2STCReading < 0 Then VOUT2STCReading = 0
+            MainForm.STCVOUT2Display = Format$(VOUT2STCReading, "0.00" & " Ohms")
         End If
-    Else
-        If VOUT2STCReading <= 2 Then
-            MainForm.STCVOUT2PASS.Visible = True
-            MainForm.STCVOUT2FAIL.Visible = False
-            STCV2Result = True
+
+        If MainForm.STCTargetDisplay = "OVRFLW" Then
+            If VOUT2STCReading > STC_OVERFLOW_OHMS Then
+                MainForm.STCVOUT2PASS.Visible = True
+                MainForm.STCVOUT2FAIL.Visible = False
+                STCV2Result = True
+            Else
+                MainForm.STCVOUT2PASS.Visible = False
+                MainForm.STCVOUT2FAIL.Visible = True
+                SensorStatus(MainForm.SensorID) = FailedSTC
+                STCV2Result = False
+            End If
         Else
-            MainForm.STCVOUT2PASS.Visible = False
-            MainForm.STCVOUT2FAIL.Visible = True
-            SensorStatus(MainForm.SensorID) = FailedSTC
-            STCV2Result = False
+            If VOUT2STCReading <= 2 Then
+                MainForm.STCVOUT2PASS.Visible = True
+                MainForm.STCVOUT2FAIL.Visible = False
+                STCV2Result = True
+            Else
+                MainForm.STCVOUT2PASS.Visible = False
+                MainForm.STCVOUT2FAIL.Visible = True
+                SensorStatus(MainForm.SensorID) = FailedSTC
+                STCV2Result = False
+            End If
         End If
     End If
-Else
-
-End If
     DoEvents
-
 End Sub
 Private Sub CHECKVOUT1()
 
@@ -1107,26 +1030,7 @@ Dim Vout2Reading As Double
         Vout2Reading = MeasureDigitalMultimeterVolts
         MainForm.VOUT2OutputDisplay = Format$(Vout2Reading, "0.0000")
             
-        If (Left$(ThirdBarcodeFormatCheck, 1) = "0") Then
-            If Vout2Reading < 1 Then
-                MainForm.VOUT2PASS.Visible = True
-                MainForm.VOUT2FAIL.Visible = False
-            Else
-                MainForm.VOUT2PASS.Visible = False
-                MainForm.VOUT2FAIL.Visible = True
-                SensorStatus(MainForm.SensorID) = FailedSwitch
-            End If
-'check output is less than 0.2v
-        Else
-            If Vout2Reading > SWITCH_HIGH_VOLTAGE Then
-                MainForm.VOUT2PASS.Visible = True
-                MainForm.VOUT2FAIL.Visible = False
-            Else
-                MainForm.VOUT2PASS.Visible = False
-                MainForm.VOUT2FAIL.Visible = True
-                SensorStatus(MainForm.SensorID) = FailedSwitch
-            End If
-        End If
+        Call CheckSwitchOutput(Vout2Reading, MainForm.VOUT2PASS, MainForm.VOUT2FAIL, (Left$(ThirdBarcodeFormatCheck, 1) = "0"), LowThreshold:=1.0)
         
         VerifySupplyCurrent
                  
@@ -1390,62 +1294,11 @@ Private Sub CHECKVOUT2ONLY()
     
     MainForm.STCTargetDisplay = "OVRFLW"
 
-    RouteDMM "STCVs"
-           
-'dummy reading
-    VSSTCReading = MeasureDigitalMultimeterOhms
-    Sleep 100
-'take reading
-    VSSTCReading = MeasureDigitalMultimeterOhms
+    Call MeasureSTC("STCVs", VSSTCReading, MainForm.STCVSPASS, MainForm.STCVSFAIL, MainForm.STCVSDisplay, STCVSResult)
 
-    If VSSTCReading > STC_OVERFLOW_OHMS Then
-        MainForm.STCVSDisplay = "OVRFLW"
-    Else
-        MainForm.STCVSDisplay = Format$(VSSTCReading, "0.00" & " Ohms")
-    End If
-
-    If VSSTCReading > STC_OVERFLOW_OHMS Then
-        MainForm.STCVSPASS.Visible = True
-        MainForm.STCVSFAIL.Visible = False
-        STCVSResult = True
-    Else
-        MainForm.STCVSPASS.Visible = False
-        MainForm.STCVSFAIL.Visible = True
-        SensorStatus(MainForm.SensorID) = FailedSTC
-        STCVSResult = False
-    End If
-
-DoEvents
-
-'connect GND to stc
-
-    RouteDMM "STCGnd"
-
-'take reading
-    GNDSTCReading = MeasureDigitalMultimeterOhms
-
-    If GNDSTCReading > STC_OVERFLOW_OHMS Then
-        MainForm.STCGNDDisplay = "OVRFLW"
-    Else
-        MainForm.STCGNDDisplay = Format$(GNDSTCReading, "0.00" & " Ohms")
-    End If
-
-
-    If GNDSTCReading > STC_OVERFLOW_OHMS Then
-        MainForm.STCGNDPASS.Visible = True
-        MainForm.STCGNDFAIL.Visible = False
-        STCGndResult = True
-    Else
-        MainForm.STCGNDPASS.Visible = False
-        SensorStatus(MainForm.SensorID) = FailedSTC
-        STCGndResult = False
-    End If
-
-DoEvents
+    Call MeasureSTC("STCGnd", GNDSTCReading, MainForm.STCGNDPASS, MainForm.STCGNDFAIL, MainForm.STCGNDDisplay, STCGndResult)
     
     RouteDMM "STCVout2"
-
-'take reading
     VOUT2STCReading = MeasureDigitalMultimeterOhms
 
     If VOUT2STCReading > STC_OVERFLOW_OHMS Then
@@ -1453,7 +1306,6 @@ DoEvents
     Else
         VOUT2STCReading = VOUT2STCReading - 1
         MainForm.STCVOUT2Display = Format$(VOUT2STCReading, "0.00" & " Ohms")
-    
     End If
 
     If MainForm.STCTargetDisplay = "OVRFLW" Then
@@ -1481,35 +1333,11 @@ DoEvents
     End If
 
     RouteDMM "Vout2"
-
-'Take vout2 reading
-        Vout2Reading = MeasureDigitalMultimeterVolts
-        MainForm.VOUT2OutputDisplay = Format$(Vout2Reading, "0.0000")
+    Vout2Reading = MeasureDigitalMultimeterVolts
+    MainForm.VOUT2OutputDisplay = Format$(Vout2Reading, "0.0000")
     
-        If (ThirdBarcodeFormatCheck = "000/100") Then
-            If Vout2Reading < SWITCH_LOW_VOLTAGE Then
-                MainForm.VOUT2PASS.Visible = True
-                MainForm.VOUT2FAIL.Visible = False
-            Else
-                MainForm.VOUT2PASS.Visible = False
-                MainForm.VOUT2FAIL.Visible = True
-                SensorStatus(MainForm.SensorID) = FailedSwitch
-            End If
-'check output is less than 0.2v
-        Else
-            If Vout2Reading > SWITCH_HIGH_VOLTAGE Then
-                MainForm.VOUT2PASS.Visible = True
-                MainForm.VOUT2FAIL.Visible = False
-            Else
-                MainForm.VOUT2PASS.Visible = False
-                MainForm.VOUT2FAIL.Visible = True
-                SensorStatus(MainForm.SensorID) = FailedSwitch
-            End If
-'check output is greater than 4v
-        End If
-        
-        VerifySupplyCurrent
-    
+    Call CheckSwitchOutput(Vout2Reading, MainForm.VOUT2PASS, MainForm.VOUT2FAIL, (ThirdBarcodeFormatCheck = "000/100"))
+    DoEvents
 End Sub
 Private Sub PASS_FAIL()
 
@@ -1576,7 +1404,7 @@ Dim id As Double
             Dim UsageLimit As Long
             If DB_GetCableWear(ChannelNum, CurrentUsage, UsageLimit) Then
                 If CurrentUsage >= UsageLimit Then
-                    Usage.Show
+                    PassForm.Show
                     MainForm.Hide
                 End If
             End If
@@ -1627,241 +1455,41 @@ Private Sub FindOffset()
     While CSVLine < 100
         s = CSVInputLine2(FileHandle)
         CSVLine = CSVLine + 1
-    If CSVLine = CSVLineRequest Then
-        ReadCsvLine2 s
-        If Error2 = "1" Then
-            MainForm.RigDisplay = "SCR"
-        ElseIf Error2 = "2" Then
-            MainForm.RigDisplay = "UCR"
-        Else
-            MainForm.RigDisplay = "LOW"
+        If CSVLine = CSVLineRequest Then
+            ReadCsvLine2 s
+            If Error2 = "1" Then
+                MainForm.RigDisplay = "SCR"
+            ElseIf Error2 = "2" Then
+                MainForm.RigDisplay = "UCR"
+            Else
+                MainForm.RigDisplay = "LOW"
+            End If
         End If
-    End If
-       
     Wend
     Close #FileHandle
            
+    Dim BatchSize As Long
+    Dim MaxID As Long
     If MainForm.RigDisplay = "SCR" Then
-
-        If MainForm.SensorID <= 40 Then
-            BatchNumber = "001"
-            IDSTART = 0
-        ElseIf MainForm.SensorID <= 80 Then
-            BatchNumber = "041"
-            IDSTART = 40
-        ElseIf MainForm.SensorID <= 120 Then
-            BatchNumber = "081"
-            IDSTART = 80
-        ElseIf MainForm.SensorID <= 160 Then
-            BatchNumber = "121"
-            IDSTART = 120
-        ElseIf MainForm.SensorID <= 200 Then
-            BatchNumber = "161"
-            IDSTART = 160
-        ElseIf MainForm.SensorID <= 240 Then
-            BatchNumber = "201"
-            IDSTART = 200
-        ElseIf MainForm.SensorID <= 280 Then
-            BatchNumber = "241"
-            IDSTART = 240
-        ElseIf MainForm.SensorID <= 320 Then
-            BatchNumber = "281"
-            IDSTART = 280
-        ElseIf MainForm.SensorID <= 360 Then
-            BatchNumber = "321"
-            IDSTART = 320
-        ElseIf MainForm.SensorID <= 400 Then
-            BatchNumber = "361"
-            IDSTART = 360
-        ElseIf MainForm.SensorID <= 440 Then
-            BatchNumber = "401"
-            IDSTART = 400
-        ElseIf MainForm.SensorID <= 480 Then
-            BatchNumber = "441"
-            IDSTART = 440
-        ElseIf MainForm.SensorID <= 520 Then
-            BatchNumber = "481"
-            IDSTART = 480
-        ElseIf MainForm.SensorID <= 560 Then
-            BatchNumber = "521"
-            IDSTART = 520
-        ElseIf MainForm.SensorID <= 600 Then
-            BatchNumber = "561"
-            IDSTART = 560
-        ElseIf MainForm.SensorID <= 640 Then
-            BatchNumber = "601"
-            IDSTART = 600
-        ElseIf MainForm.SensorID <= 680 Then
-            BatchNumber = "641"
-            IDSTART = 640
-        ElseIf MainForm.SensorID <= 720 Then
-            BatchNumber = "681"
-            IDSTART = 680
-        ElseIf MainForm.SensorID <= 760 Then
-            BatchNumber = "721"
-            IDSTART = 720
-        ElseIf MainForm.SensorID <= 800 Then
-            BatchNumber = "761"
-            IDSTART = 760
-        ElseIf MainForm.SensorID <= 840 Then
-            BatchNumber = "801"
-            IDSTART = 800
-        ElseIf MainForm.SensorID <= 880 Then
-            BatchNumber = "841"
-            IDSTART = 840
-        ElseIf MainForm.SensorID <= 920 Then
-            BatchNumber = "881"
-            IDSTART = 880
-        ElseIf MainForm.SensorID <= 960 Then
-            BatchNumber = "921"
-            IDSTART = 920
-        ElseIf MainForm.SensorID <= 1000 Then
-            BatchNumber = "961"
-            IDSTART = 960
-        ElseIf MainForm.SensorID <= 1040 Then
-            BatchNumber = "1001"
-            IDSTART = 1000
-        Else
-            MsgBox "id error"
-        End If
-    
-    
+        BatchSize = 40
+        MaxID = 1040
     ElseIf MainForm.RigDisplay = "UCR" Then
-        
-        If MainForm.SensorID <= 42 Then
-            BatchNumber = "001"
-            IDSTART = 0
-        ElseIf MainForm.SensorID <= 84 Then
-            BatchNumber = "043"
-            IDSTART = 42
-        ElseIf MainForm.SensorID <= 126 Then
-            BatchNumber = "085"
-            IDSTART = 84
-        ElseIf MainForm.SensorID <= 168 Then
-            BatchNumber = "127"
-            IDSTART = 126
-        ElseIf MainForm.SensorID <= 210 Then
-            BatchNumber = "169"
-            IDSTART = 168
-        ElseIf MainForm.SensorID <= 252 Then
-            BatchNumber = "211"
-            IDSTART = 210
-        ElseIf MainForm.SensorID <= 294 Then
-            BatchNumber = "253"
-            IDSTART = 252
-        ElseIf MainForm.SensorID <= 336 Then
-            BatchNumber = "295"
-            IDSTART = 294
-        ElseIf MainForm.SensorID <= 378 Then
-            BatchNumber = "337"
-            IDSTART = 336
-        ElseIf MainForm.SensorID <= 420 Then
-            BatchNumber = "379"
-            IDSTART = 378
-        ElseIf MainForm.SensorID <= 462 Then
-            BatchNumber = "421"
-            IDSTART = 420
-        ElseIf MainForm.SensorID <= 504 Then
-            BatchNumber = "463"
-            IDSTART = 462
-        ElseIf MainForm.SensorID <= 546 Then
-            BatchNumber = "505"
-            IDSTART = 504
-        ElseIf MainForm.SensorID <= 588 Then
-            BatchNumber = "547"
-            IDSTART = 546
-        ElseIf MainForm.SensorID <= 630 Then
-            BatchNumber = "589"
-            IDSTART = 588
-        ElseIf MainForm.SensorID <= 672 Then
-            BatchNumber = "631"
-            IDSTART = 630
-        ElseIf MainForm.SensorID <= 714 Then
-            BatchNumber = "673"
-            IDSTART = 672
-        ElseIf MainForm.SensorID <= 756 Then
-            BatchNumber = "715"
-            IDSTART = 714
-        ElseIf MainForm.SensorID <= 798 Then
-            BatchNumber = "757"
-            IDSTART = 756
-        ElseIf MainForm.SensorID <= 840 Then
-            BatchNumber = "799"
-            IDSTART = 798
-        ElseIf MainForm.SensorID <= 882 Then
-            BatchNumber = "841"
-            IDSTART = 840
-        ElseIf MainForm.SensorID <= 924 Then
-            BatchNumber = "883"
-            IDSTART = 882
-        ElseIf MainForm.SensorID <= 966 Then
-            BatchNumber = "925"
-            IDSTART = 924
-        ElseIf MainForm.SensorID <= 1008 Then
-            BatchNumber = "967"
-            IDSTART = 966
-        Else
-            MsgBox "id error"
-        End If
+        BatchSize = 42
+        MaxID = 1008
     Else
-        If MainForm.SensorID <= 14 Then
-            BatchNumber = "001"
-            IDSTART = 0
-        ElseIf MainForm.SensorID <= 28 Then
-            BatchNumber = "015"
-            IDSTART = 14
-        ElseIf MainForm.SensorID <= 42 Then
-            BatchNumber = "029"
-            IDSTART = 28
-        ElseIf MainForm.SensorID <= 56 Then
-            BatchNumber = "043"
-            IDSTART = 42
-        ElseIf MainForm.SensorID <= 70 Then
-            BatchNumber = "057"
-            IDSTART = 56
-        ElseIf MainForm.SensorID <= 84 Then
-            BatchNumber = "071"
-            IDSTART = 70
-        ElseIf MainForm.SensorID <= 98 Then
-            BatchNumber = "085"
-            IDSTART = 84
-        ElseIf MainForm.SensorID <= 112 Then
-            BatchNumber = "099"
-            IDSTART = 98
-        ElseIf MainForm.SensorID <= 126 Then
-            BatchNumber = "113"
-            IDSTART = 112
-        ElseIf MainForm.SensorID <= 140 Then
-            BatchNumber = "127"
-            IDSTART = 126
-        ElseIf MainForm.SensorID <= 154 Then
-            BatchNumber = "141"
-            IDSTART = 140
-        ElseIf MainForm.SensorID <= 168 Then
-            BatchNumber = "155"
-            IDSTART = 154
-        ElseIf MainForm.SensorID <= 182 Then
-            BatchNumber = "169"
-            IDSTART = 168
-        ElseIf MainForm.SensorID <= 196 Then
-            BatchNumber = "183"
-            IDSTART = 182
-        ElseIf MainForm.SensorID <= 210 Then
-            BatchNumber = "197"
-            IDSTART = 196
-        ElseIf MainForm.SensorID <= 224 Then
-            BatchNumber = "211"
-            IDSTART = 210
-        ElseIf MainForm.SensorID <= 238 Then
-            BatchNumber = "225"
-            IDSTART = 224
-        ElseIf MainForm.SensorID <= 252 Then
-            BatchNumber = "239"
-            IDSTART = 238
-        Else
-            MsgBox "id error"
-        End If
+        BatchSize = 14
+        MaxID = 252
     End If
+    
+    If MainForm.SensorID <= 0 Or MainForm.SensorID > MaxID Then
+        MsgBox "id error"
+        Exit Sub
+    End If
+    
+    Dim BatchIndex As Long
+    BatchIndex = (MainForm.SensorID - 1) \ BatchSize
+    IDSTART = BatchIndex * BatchSize
+    BatchNumber = Format$(IDSTART + 1, "000")
      
     On Error GoTo errhandler
     CSVLineRequest = (MainForm.SensorID - IDSTART) + 50
@@ -1884,7 +1512,7 @@ errhandler:
 
     MsgBox "Can't Find File - Check UCR"
     PartNotCal = True
-CSVOffsetError = 100
+    CSVOffsetError = 100
 End Sub
 Public Function CSVInputLine2(ByVal FileHandle As Integer) As String
     CSVInputLine2 = vbNullString

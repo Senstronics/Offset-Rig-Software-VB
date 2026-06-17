@@ -66,10 +66,17 @@ Private Sub Cmdpword_Click()
 Const PassWord As String = "sens666"
          
     If PassForm.pbox.Text = PassWord Then
-     MainForm.NumberOfUsesDisplay = 0
-     PassForm.pbox.Text = ""
-     PassForm.Hide
-     MainForm.Show
+        Dim ChannelNum As Long
+        ChannelNum = Val(MainForm.CableNumberDisplay)
+        If ChannelNum > 0 Then
+            Dim SQL As String
+            SQL = "UPDATE cable_harness SET current_usage = 0 WHERE channel_number = " & ChannelNum
+            DB_Execute SQL
+        End If
+        MainForm.NumberOfUsesDisplay = 0
+        PassForm.pbox.Text = ""
+        PassForm.Hide
+        MainForm.Show
     End If
 
 End Sub

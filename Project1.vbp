@@ -21,7 +21,6 @@ Module=Vision; Vision.bas
 Module=Barcode; Barcode.bas
 Module=Database; Database.bas
 Form=PWord.frm
-Form=CableUsage.frm
 IconForm="MainForm"
 Startup="MainForm"
 HelpFile=""

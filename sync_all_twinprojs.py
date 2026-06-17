@@ -137,7 +137,6 @@ def sync_project(project_dir, fix_references_level=0):
     constants_path = os.path.join(project_dir, "Constants.bas")
     
     mainfrm_path = os.path.join(project_dir, "MainForm.frm")
-    cableusagefrm_path = os.path.join(project_dir, "CableUsage.frm")
     pwordfrm_path = os.path.join(project_dir, "PWord.frm")
     
     with open(logfile_path, "rb") as f:
@@ -231,11 +230,6 @@ def sync_project(project_dir, fix_references_level=0):
             node.data_or_children = tbform_data
             node.val = len(tbform_data)
             print("  Updated MainForm.frm.tbform (removed V34 default)")
-        elif node.name == "CableUsage.frm.twin":
-            twin_data = make_frm_twin_content(node.data_or_children, cableusagefrm_path)
-            node.data_or_children = twin_data
-            node.val = len(twin_data)
-            print("  Updated CableUsage.frm.twin")
         elif node.name == "PWord.frm.twin":
             twin_data = make_frm_twin_content(node.data_or_children, pwordfrm_path)
             node.data_or_children = twin_data
