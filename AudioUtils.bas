@@ -1,4 +1,4 @@
-Attribute VB_Name = "Module1"
+Attribute VB_Name = "AudioUtils"
 Option Explicit
 
 'Play a wave file.

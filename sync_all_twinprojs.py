@@ -133,7 +133,7 @@ def sync_project(project_dir, fix_references_level=0):
     barcode_path = os.path.join(project_dir, "Barcode.bas")
     database_path = os.path.join(project_dir, "Database.bas")
     pci7250_path = os.path.join(project_dir, "PCI7250.bas")
-    module1_path = os.path.join(project_dir, "Module1.bas")
+    audioutils_path = os.path.join(project_dir, "AudioUtils.bas")
     constants_path = os.path.join(project_dir, "Constants.bas")
     
     mainfrm_path = os.path.join(project_dir, "MainForm.frm")
@@ -161,8 +161,8 @@ def sync_project(project_dir, fix_references_level=0):
         database_content = f.read()
     with open(pci7250_path, "rb") as f:
         pci7250_content = f.read()
-    with open(module1_path, "rb") as f:
-        module1_content = f.read()
+    with open(audioutils_path, "rb") as f:
+        audioutils_content = f.read()
     with open(constants_path, "rb") as f:
         constants_content = f.read()
         
@@ -211,10 +211,11 @@ def sync_project(project_dir, fix_references_level=0):
             node.data_or_children = pci7250_content
             node.val = len(pci7250_content)
             print("  Updated PCI7250.bas")
-        elif node.name == "Module1.bas":
-            node.data_or_children = module1_content
-            node.val = len(module1_content)
-            print("  Updated Module1.bas")
+        elif node.name in ["Module1.bas", "AudioUtils.bas"]:
+            node.name = "AudioUtils.bas"
+            node.data_or_children = audioutils_content
+            node.val = len(audioutils_content)
+            print("  Updated AudioUtils.bas")
         elif node.name == "Constants.bas":
             node.data_or_children = constants_content
             node.val = len(constants_content)

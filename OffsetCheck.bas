@@ -570,7 +570,7 @@ Dim IsFourPinVal As Boolean
             MainForm.VOUT2TARGETLABEL.Visible = False
         End If
     
-        FINDLIMITS
+        FindLimits
     End If
     
     If OffsetOnly = True Or PackOnly = True Then
@@ -595,7 +595,7 @@ Dim IsFourPinVal As Boolean
     End If
        
 End Function
-Private Sub FINDLIMITS()
+Private Sub FindLimits()
     Dim Vout1Reading As Double
     Dim Difference As Double
 
@@ -762,7 +762,7 @@ Private Sub FINDLIMITS()
     End If
       
 End Sub
-Public Sub START()
+Public Sub StartTest()
 
 StartTime = Format$(Now, "ttttt")
 ReadyFlag2 = False
@@ -781,14 +781,14 @@ If PackOnly = True Then
     PackTestOnly
 ElseIf Vout2Only = True Then
 ' 3 pin deutsch with switch
-    CHECKVOUT2ONLY
+    CheckVout2Only
 ElseIf OffsetOnly = True Then
-    CHECKVOUT1
+    CheckVout1
 Else
     
-    CHECKSTC
-    CHECKVOUT1
-    CHECKVOUT2
+    CheckSTC
+    CheckVout1
+    CheckVout2
    
     If SwitchHyst = False And BoardType <> "HY" Then
      
@@ -797,7 +797,7 @@ Else
         If PartNotCal = True Then
             MainForm.EmptyFields
             DoEvents
-            PASS_FAIL
+            PassFail
             Exit Sub
         End If
         
@@ -831,12 +831,12 @@ Else
 End If
 
     If SensorStatus(MainForm.SensorID) = PASSED Then
-        RecieveVision
+        ReceiveVision
     End If
 
 DoEvents
 
-PASS_FAIL
+PassFail
 
 End Sub
 Private Sub PackTestOnly()
@@ -938,7 +938,7 @@ Private Sub CheckSwitchOutput(ByVal Reading As Double, ByVal PassCtrl As Control
 End Sub
 
 
-Private Sub CHECKSTC()
+Private Sub CheckSTC()
 
     Dim VSSTCReading As Double
     Dim GNDSTCReading As Double
@@ -993,7 +993,7 @@ Private Sub CHECKSTC()
     End If
     DoEvents
 End Sub
-Private Sub CHECKVOUT1()
+Private Sub CheckVout1()
 
 
 Dim Vout1Reading As Double
@@ -1145,7 +1145,7 @@ Dim Vout2Reading As Double
     DoEvents
     SetPSU2 0
 End Sub
-Private Sub CHECKVOUT2()
+Private Sub CheckVout2()
     
 Dim Vout2Error As Double
 Dim Vout2Reading As Double
@@ -1285,7 +1285,7 @@ Dim SwitchPSUValue As Double
     End If
   
 End Sub
-Private Sub CHECKVOUT2ONLY()
+Private Sub CheckVout2Only()
 
     Dim VSSTCReading As Double
     Dim GNDSTCReading As Double
@@ -1339,7 +1339,7 @@ Private Sub CHECKVOUT2ONLY()
     Call CheckSwitchOutput(Vout2Reading, MainForm.VOUT2PASS, MainForm.VOUT2FAIL, (ThirdBarcodeFormatCheck = "000/100"))
     DoEvents
 End Sub
-Private Sub PASS_FAIL()
+Private Sub PassFail()
 
 Dim l          As Long
 Dim lFlags     As Long
@@ -1817,7 +1817,7 @@ Public Sub TestOringAndRest()
     ORingRequired = False
     RestrictorReq = False
     ChangeVisionProgram 35
-    RecieveVision
+    ReceiveVision
     
 End Sub
 Public Sub TestOringAndRest2()
@@ -1825,7 +1825,7 @@ Public Sub TestOringAndRest2()
     ORingRequired = True
     RestrictorReq = True
     ChangeVisionProgram 35
-    RecieveVision
+    ReceiveVision
 
 End Sub
 

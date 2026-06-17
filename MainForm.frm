@@ -2162,7 +2162,7 @@ Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
     Case vbKeyF2
         If DevMode Then
             If DetailChecked = True Then
-                START
+                StartTest
             Else
                 MsgBox "Please scan or enter Works Order and Barcodes first (DetailChecked must be True)."
             End If

@@ -1,11 +1,11 @@
 VERSION 5.00
 Begin VB.Form Outputs 
-   Caption         =   "Form1"
+   Caption         =   "Engineering Outputs"
    ClientHeight    =   7215
    ClientLeft      =   60
    ClientTop       =   450
    ClientWidth     =   9420
-   LinkTopic       =   "Form1"
+   LinkTopic       =   "Engineering Outputs"
    ScaleHeight     =   7215
    ScaleWidth      =   9420
    StartUpPosition =   3  'Windows Default
@@ -139,7 +139,7 @@ Begin VB.Form Outputs
       Top             =   1560
       Width           =   1935
    End
-   Begin VB.CommandButton TrigggerMarkerButton 
+   Begin VB.CommandButton TriggerMarkerButton 
       Caption         =   "Trigger Marker"
       Height          =   615
       Left            =   1560
@@ -184,7 +184,7 @@ Private Sub TriggerCameraButton_Click()
     TriggerCamera
     
 End Sub
-Private Sub TrigggerMarkerButton_Click()
+Private Sub TriggerMarkerButton_Click()
 
     TriggerMarker
 

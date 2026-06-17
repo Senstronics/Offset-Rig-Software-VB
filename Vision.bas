@@ -18,7 +18,7 @@ Public Sub ChangeVisionProgram(ProgramNumber)
     SendvisionCommand "PW,1," & ProgramNumber
     
 End Sub
-Public Sub RecieveVision()
+Public Sub ReceiveVision()
     If DevMode Then
         MainForm.OringPass.Visible = True
         ORingResult = True
