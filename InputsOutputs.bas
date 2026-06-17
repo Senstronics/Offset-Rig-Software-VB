@@ -50,7 +50,7 @@ Public Sub CheckInputs()
             IsInterlockClosed = True
             If ReadyFlag = True And DetailChecked = True Then
                 ReadyFlag = False
-                START
+                StartTest
             End If
         End If
         
