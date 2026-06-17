@@ -132,6 +132,8 @@ def sync_project(project_dir, fix_references_level=0):
     ieeevb_path = os.path.join(project_dir, "ieeevb.bas")
     barcode_path = os.path.join(project_dir, "Barcode.bas")
     database_path = os.path.join(project_dir, "Database.bas")
+    pci7250_path = os.path.join(project_dir, "PCI7250.bas")
+    module1_path = os.path.join(project_dir, "Module1.bas")
     
     mainfrm_path = os.path.join(project_dir, "MainForm.frm")
     cableusagefrm_path = os.path.join(project_dir, "CableUsage.frm")
@@ -157,6 +159,10 @@ def sync_project(project_dir, fix_references_level=0):
         barcode_content = f.read()
     with open(database_path, "rb") as f:
         database_content = f.read()
+    with open(pci7250_path, "rb") as f:
+        pci7250_content = f.read()
+    with open(module1_path, "rb") as f:
+        module1_content = f.read()
         
     def update_nodes(node):
         if node.name == "LogFile.bas":
@@ -199,6 +205,14 @@ def sync_project(project_dir, fix_references_level=0):
             node.data_or_children = database_content
             node.val = len(database_content)
             print("  Updated Database.bas")
+        elif node.name == "PCI7250.bas":
+            node.data_or_children = pci7250_content
+            node.val = len(pci7250_content)
+            print("  Updated PCI7250.bas")
+        elif node.name == "Module1.bas":
+            node.data_or_children = module1_content
+            node.val = len(module1_content)
+            print("  Updated Module1.bas")
         elif node.name == "MainForm.frm.twin":
             twin_data = make_frm_twin_content(node.data_or_children, mainfrm_path)
             node.data_or_children = twin_data

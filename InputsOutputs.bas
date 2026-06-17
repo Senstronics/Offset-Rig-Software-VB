@@ -3,10 +3,6 @@ Option Explicit
 
 Global card As Integer
 Public IsInterlockClosed As Boolean
-Public PartPresent As Boolean
-Public OringPresent As Boolean
-Public RestrictorPresent As Boolean
-Public OutputSum As Double
 Public Sub Initialise7250()
     If DevMode Then Exit Sub
   Register_Card PCI_7250, 0

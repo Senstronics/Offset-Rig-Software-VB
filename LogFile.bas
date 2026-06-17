@@ -1,12 +1,6 @@
 Attribute VB_Name = "LogFile"
 Option Explicit
 
-#If VB7 Then
-Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
-#Else
-Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
-#End If
-
 Public Const CompileVersion As String = "v1.1.1"
 Public UpdateNetworkPath As String
 Public DevMode As Boolean
@@ -17,13 +11,6 @@ Public Relay_Delay As Long
 Public PSU_Ch2_Factor As Double
 Public PSU_Ch3_Factor As Double
 
-Public BoardTypePath As String
-Public UnionListPath As String
-Public ConnectorTypePath As String
-Public ColourListPath As String
-Public CableListPath As String
-Public CableUsagePath As String
-Public RigTypePath As String
 Public ResultsPath As String
 Public LocalResultsPath As String
 Public WorkOrderPath As String
@@ -31,7 +18,6 @@ Public LabelPrintInputPath As String
 Public LabelPrintBatchPath As String
 Public SoundCompletePath As String
 Public SoundFailedPath As String
-
 
 Public Type CurrentDrawOverride
     ProductRange As String
@@ -57,27 +43,6 @@ Public NonStandardProcesses() As NonStandardProcessRoute
 Public NumberOfNonStandardProcesses As Integer
 Public CurrentRoute As NonStandardProcessRoute
 
-Public UnionCode() As String
-Public ProgramNumber() As Integer
-Public OringCode() As String
-Public OringColour() As String
-Public NumberOfOrings As Integer
-Public CableCode() As String
-Public CableNumber() As String
-Public CableID() As String
-Public CableUsage() As Long
-Public NumberOfCables As Integer
-Public NumberOfUnions As Integer
-Public NumberOfCableTypes As Integer
-Public OffsetType As Integer
-Public NumberOfConnectors As Integer
-Public ConnectorCode() As String
-Public ConnectorName() As String
-Public IsFourPin() As Integer
-Public BoardTypeList() As String
-Public IsBoardSTC() As Integer
-Public NumberOfBoardTypes As Integer
-Public PinOut() As String
 Public Sub AddToHistoryLogCDrive(ByVal LogEntry As String)
 
     Dim LogFile As Integer
@@ -205,299 +170,7 @@ Public Function GetLogFileName() As String
     GetLogFileName = PathName & "\" & Format$(CurrentTimeAndDate, "yyyymmdd") & ".log"
     
 End Function
-Public Function ReadBoardTypeList()
 
-    Dim FileHandle As Integer
-    Dim FileName As String
-        
-    On Error GoTo errhandler
-    FileName = BoardTypePath
-    FileHandle = FreeFile
-    
-    Open FileName For Input As #FileHandle
-
-    Dim s As String
-    Dim SplitValues() As String
-    Dim i As Long
-    i = 1
-    Do While Not EOF(FileHandle)
-        s = InputLine(FileHandle)
-        s = Trim$(s)
-        If s <> "" And Left$(s, 1) <> "#" And Left$(s, 1) <> ";" Then
-            SplitValues = Split(s, ",")
-            If UBound(SplitValues) >= 2 Then
-                ReDim Preserve BoardTypeList(i)
-                BoardTypeList(i) = Trim$(SplitValues(0))
-                ReDim Preserve PinOut(i)
-                PinOut(i) = Trim$(SplitValues(1))
-                ReDim Preserve IsBoardSTC(i)
-                IsBoardSTC(i) = Val(Trim$(SplitValues(2)))
-                i = i + 1
-            End If
-        End If
-    Loop
-    NumberOfBoardTypes = i - 1
-    
-    Close #FileHandle
-    
-    Exit Function
-    
-errhandler:
-    If Not DevMode Then MsgBox "Error opening Board Type list" & FileName & " Contact Engineering"
-    ReadBoardTypeList = False
-
-End Function
-Public Function ReadRetrieveUnionList()
-    
-    Dim FileHandle As Integer
-    Dim FileName As String
-        
-    On Error GoTo errhandler
-    FileName = UnionListPath
-    FileHandle = FreeFile
-    
-    Open FileName For Input As #FileHandle
-
-    Dim s As String
-    Dim SplitValues() As String
-    Dim i As Long
-    i = 1
-    Do While Not EOF(FileHandle)
-        s = InputLine(FileHandle)
-        s = Trim$(s)
-        If s <> "" And Left$(s, 1) <> "#" And Left$(s, 1) <> ";" Then
-            SplitValues = Split(s, ",")
-            If UBound(SplitValues) >= 1 Then
-                ReDim Preserve UnionCode(i)
-                UnionCode(i) = Trim$(SplitValues(0))
-                ReDim Preserve ProgramNumber(i)
-                ProgramNumber(i) = Val(Trim$(SplitValues(1)))
-                i = i + 1
-            End If
-        End If
-    Loop
-    NumberOfUnions = i - 1
-    
-    Close #FileHandle
-    
-    Exit Function
-    
-errhandler:
-    If Not DevMode Then MsgBox "Error opening union list" & FileName & " Contact Engineering"
-    ReadRetrieveUnionList = False
-
-End Function
-Public Function ReadConnectorTypeList()
-    
-    Dim FileHandle As Integer
-    Dim FileName As String
-        
-    On Error GoTo errhandler
-    FileName = ConnectorTypePath
-    FileHandle = FreeFile
-    
-    Open FileName For Input As #FileHandle
-
-    Dim s As String
-    Dim SplitValues() As String
-    Dim i As Long
-    i = 1
-    Do While Not EOF(FileHandle)
-        s = InputLine(FileHandle)
-        s = Trim$(s)
-        If s <> "" And Left$(s, 1) <> "#" And Left$(s, 1) <> ";" Then
-            SplitValues = Split(s, ",")
-            If UBound(SplitValues) >= 2 Then
-                ReDim Preserve ConnectorCode(i)
-                ConnectorCode(i) = Trim$(SplitValues(0))
-                ReDim Preserve ConnectorName(i)
-                ConnectorName(i) = Trim$(SplitValues(1))
-                ReDim Preserve IsFourPin(i)
-                IsFourPin(i) = Val(Trim$(SplitValues(2)))
-                i = i + 1
-            End If
-        End If
-    Loop
-    NumberOfConnectors = i - 1
-    
-    Close #FileHandle
-    
-    Exit Function
-    
-errhandler:
-    If Not DevMode Then MsgBox "Error opening connector code" & FileName & " Contact Engineering"
-    ReadConnectorTypeList = False
-
-End Function
-Public Function ReadRetrieveColourList()
-    
-    Dim FileHandle As Integer
-    Dim FileName As String
-        
-    On Error GoTo errhandler
-    FileName = ColourListPath
-    FileHandle = FreeFile
-    
-    Open FileName For Input As #FileHandle
-
-    Dim s As String
-    Dim SplitValues() As String
-    Dim i As Long
-    i = 1
-    Do While Not EOF(FileHandle)
-        s = InputLine(FileHandle)
-        s = Trim$(s)
-        If s <> "" And Left$(s, 1) <> "#" And Left$(s, 1) <> ";" Then
-            SplitValues = Split(s, ",")
-            If UBound(SplitValues) >= 1 Then
-                ReDim Preserve OringCode(i)
-                OringCode(i) = Trim$(SplitValues(0))
-                ReDim Preserve OringColour(i)
-                OringColour(i) = Trim$(SplitValues(1))
-                i = i + 1
-            End If
-        End If
-    Loop
-    NumberOfOrings = i - 1
-    
-    Close #FileHandle
-    
-    Exit Function
-    
-errhandler:
-    If Not DevMode Then MsgBox "Error opening O-ring Colour list" & FileName & " Contact Engineering"
-    ReadRetrieveColourList = False
-
-End Function
-Public Function ReadRetrieveCableList()
-    
-    Dim FileHandle As Integer
-    Dim FileName As String
-        
-    On Error GoTo errhandler
-    FileName = CableListPath
-    FileHandle = FreeFile
-    
-    Open FileName For Input As #FileHandle
-
-    Dim s As String
-    Dim SplitValues() As String
-    Dim i As Long
-        
-    NumberOfCables = 0
-    i = 1
-    Do While Not EOF(FileHandle)
-        s = InputLine(FileHandle)
-        s = Trim$(s)
-        If s <> "" And Left$(s, 1) <> "#" And Left$(s, 1) <> ";" Then
-            SplitValues = Split(s, ",")
-            If UBound(SplitValues) >= 1 Then
-                ReDim Preserve CableCode(i)
-                CableCode(i) = Trim$(SplitValues(0))
-                ReDim Preserve CableNumber(i)
-                CableNumber(i) = Trim$(SplitValues(1))
-                i = i + 1
-            End If
-        End If
-    Loop
-    NumberOfCables = i - 1
-    
-    Close #FileHandle
-    
-    Exit Function
-    
-errhandler:
-    If Not DevMode Then MsgBox "Error opening Cable list" & FileName & " Contact Engineering"
-    ReadRetrieveCableList = False
-
-End Function
-Public Function ReadRetrieveCableUsage()
-    
-    Dim FileHandle As Integer
-    Dim FileName As String
-        
-    On Error GoTo errhandler
-    FileName = CableUsagePath
-    FileHandle = FreeFile
-    
-    Open FileName For Input As #FileHandle
-
-    Dim s As String
-    Dim SplitValues() As String
-    Dim i As Long
-        
-    NumberOfCableTypes = 0
-    i = 1
-    Do While Not EOF(FileHandle)
-        s = InputLine(FileHandle)
-        s = Trim$(s)
-        If s <> "" And Left$(s, 1) <> "#" And Left$(s, 1) <> ";" Then
-            SplitValues = Split(s, ",")
-            If UBound(SplitValues) >= 1 Then
-                ReDim Preserve CableID(i)
-                CableID(i) = Trim$(SplitValues(0))
-                ReDim Preserve CableUsage(i)
-                CableUsage(i) = Val(Trim$(SplitValues(1)))
-                i = i + 1
-            End If
-        End If
-    Loop
-    NumberOfCableTypes = i - 1
-    
-    Close #FileHandle
-    
-    Exit Function
-    
-errhandler:
-    If Not DevMode Then MsgBox "Error opening Cable list" & FileName & " Contact Engineering"
-    ReadRetrieveCableUsage = False
-
-End Function
-Public Function FindRigType()
-    If DevMode Then
-        OffsetType = 1
-        FindRigType = True
-        Exit Function
-    End If
-    
-    Dim FileHandle As Integer
-    Dim FileName As String
-        
-    On Error GoTo errhandler
-    FileName = RigTypePath
-    FileHandle = FreeFile
-    
-    Open FileName For Input As #FileHandle
-
-    Dim s As String
-    Dim SplitValues() As String
-    Dim i As Long
-     
-    s = InputLine(FileHandle)
-
-'1= Offset with switch and printer
-'2= 25 Day Hold
-'3= 90 Day Hold
-
-        If s = "1" Then
-            OffsetType = 1
-        ElseIf s = "2" Then
-            OffsetType = 2
-        ElseIf s = "3" Then
-            OffsetType = 3
-        Else
-            MsgBox "Do Not Recognose Offset - See Engineering"
-        End If
-                  
-    Close #FileHandle
-    
-    Exit Function
-    
-errhandler:
-    MsgBox "Error opening Rig Type" & FileName & " Contact Engineering"
-    FindRigType = False
-
-End Function
 Public Sub FindWorkOrder()
 
   If MainForm.ScanAllCheck = 0 Then
@@ -515,47 +188,10 @@ Public Sub FindWorkOrder()
             MainForm.ThirdMCSBarcode = "%2" & MainForm.ThirdMCSBarcode
             MainForm.PartNumber = "%P" & MainForm.PartNumber 'LH 11/06/25 - Changes for Milwaukee
         End If
-        
-        
+
     End If
 
 End Sub
-Public Function InputLine(ByVal FileHandle As Integer) As String
-    InputLine = vbNullString
-    Dim NewCharacter As String
-    
-    While (EOF(FileHandle) = False) And (NewCharacter <> vbCr)
-        NewCharacter = Input(1, FileHandle)
-        If (NewCharacter <> vbCr) And (NewCharacter <> vbLf) And (NewCharacter <> vbTab) Then
-            InputLine = InputLine & NewCharacter
-        End If
-    Wend
-End Function
-Public Function WriteCableUsageFile(ByVal FileName As String) As Boolean
-    Dim FileLine As String
-    Dim FileHandle As Integer
-    Dim i As Integer
-    
-    On Error GoTo errhandler
-    
-    FileHandle = FreeFile
-    Open FileName For Output As #FileHandle
-    
-For i = 1 To NumberOfCableTypes
-    
-    
-    FileLine = CableID(i) & "," & CableUsage(i)
-    Print #FileHandle, FileLine
-    
-Next
-
-    Close #FileHandle
-
-    Exit Function
-    
-errhandler:
-
-End Function
 
 Public Sub LoadCurrentDrawOverrides()
     Dim FileHandle As Integer
