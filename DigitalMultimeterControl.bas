@@ -303,47 +303,47 @@ Public Function CheckLoadOn() As Boolean
     End If
 End Function
 
-Public Function PSUCheck() As Double
+Public Sub PSUCheck()
     RouteDMMByPath "101,103,110,113"
-End Function
+End Sub
 
-Public Function SwitchToCheckPSUT() As Double
+Public Sub SwitchToCheckPSUT()
     RouteDMMByPath "135,118,121,233"
-End Function
+End Sub
 
-Public Function SwitchToCheckPSUL() As Double
+Public Sub SwitchToCheckPSUL()
     RouteDMMByPath "135,126,129,233"
-End Function
+End Sub
 
-Public Function SwitchToCheckPSUA() As Double
+Public Sub SwitchToCheckPSUA()
     RouteDMMByPath "143,118,121,233"
-End Function
+End Sub
 
-Public Function SwitchToCheckPSUR() As Double
+Public Sub SwitchToCheckPSUR()
     RouteDMMByPath "143,126,129,233"
-End Function
+End Sub
 
-Public Function SwitchPackOffsetMeas() As Double
+Public Sub SwitchPackOffsetMeas()
     RouteDMMByPath "125,118,137,143"
-End Function
+End Sub
 
-Public Function SwitchTempMeas() As Double
+Public Sub SwitchTempMeas()
     RouteDMMByPath "105,106,111,116"
-End Function
+End Sub
 
-Public Function SwitchPackInsulation() As Double
+Public Sub SwitchPackInsulation()
     RouteDMMByPath "115,113,143"
-End Function
+End Sub
 
-Public Function SwitchDualVout1Meas() As Double
+Public Sub SwitchDualVout1Meas()
     RouteDMMByPath "126,129,117,143"
-End Function
+End Sub
 
-Public Function SwitchDualVout2Meas() As Double
+Public Sub SwitchDualVout2Meas()
     RouteDMMByPath "126,129,117,135"
-End Function
+End Sub
 
-Public Function OpenAllSwitches() As Double
-    If DevMode Then Exit Function
+Public Sub OpenAllSwitches()
+    If DevMode Then Exit Sub
     SendDMMCommand ":ROUT:OPEN:ALL"
-End Function
+End Sub
