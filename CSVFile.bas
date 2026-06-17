@@ -1,6 +1,17 @@
 Attribute VB_Name = "CSVFile"
 Option Explicit
 
+' =============================================================================
+' Module:      CSVFile
+' Purpose:     Generates and formats Excel output files and calls batch scripts for barcode/label printing.
+' Dependencies: MainForm, LogFile
+' Depends On:  OffsetCheck.bas, MainForm.frm
+' Translation Notes:
+'   - Uses Excel COM automation.
+'   - Replace with native libraries that can write files (e.g. EPPlus, ClosedXML, or openpyxl/pandas).
+'   - Replace ShellExecute call with standard process launching capabilities of the target language.
+' =============================================================================
+
 Private Declare Function ShellExecute Lib "shell32.dll" Alias "ShellExecuteA" (ByVal hwnd As Long, ByVal lpOperation As String, ByVal lpFile As String, ByVal lpParameters As String, ByVal lpDirectory As String, ByVal nShowCmd As Long) As Long
 
 Public Function FindExcelFile() As Boolean

@@ -1,6 +1,16 @@
 Attribute VB_Name = "LogFile"
 Option Explicit
 
+' =============================================================================
+' Module:      LogFile
+' Purpose:     Config loading (offset_config.txt, current_draw.txt, non-standard_processes.txt) and logging.
+' Dependencies: Database
+' Depends On:  OffsetCheck.bas, MainForm.frm
+' Translation Notes:
+'   - Replace custom config file parsing with modern structures (e.g., JSON, YAML, or appsettings.json).
+'   - Replace file logging with standard logging frameworks (e.g., NLog, log4net, Python logging).
+' =============================================================================
+
 Public Const CompileVersion As String = "v1.1.1"
 Public UpdateNetworkPath As String
 Public DevMode As Boolean

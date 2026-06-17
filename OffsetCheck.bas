@@ -1,6 +1,16 @@
 Attribute VB_Name = "OffsetCheck"
 Option Explicit
 
+' =============================================================================
+' Module:      OffsetCheck
+' Purpose:     Core test orchestration and business logic for sensor post-calibration checking.
+' Dependencies: MainForm, Database, Barcode, Vision, CSVFile, InputsOutputs, LogFile, ControlPSU, DigitalMultimeterControl, Constants, AudioUtils
+' Depends On:  MainForm
+' Translation Notes:
+'   - The core state machine of the testing software.
+'   - Decouple variables/state from the UI (MainForm controls) using events or properties prior to translation.
+' =============================================================================
+
 Public ReadyFlag As Boolean
 Public ReadyFlag2 As Boolean
 Public PartNotCal As Boolean

@@ -1,13 +1,15 @@
 Attribute VB_Name = "Barcode"
 Option Explicit
 
-' =========================================================================
-' Barcode Parsing Module
-' 
-' Exposes unified parsing subroutines to extract parameters from scanned 
-' sensor barcodes (First, Second, and Third).
-' Updates the global/module-level variables declared in OffsetCheck.bas.
-' =========================================================================
+' =============================================================================
+' Module:      Barcode
+' Purpose:     Parses scanned barcode strings into components (Part Number, Serial, etc.).
+' Dependencies: MainForm
+' Depends On:  OffsetCheck.bas, MainForm.frm
+' Translation Notes:
+'   - Translates raw scanned inputs using string logic.
+'   - Can be simplified using regular expressions (Regex) or substring methods.
+' =============================================================================
 
 Public Sub ParseFirstBarcode(ByVal Barcode As String)
     ' Clean input and ensure prefix %0 is present

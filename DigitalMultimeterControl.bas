@@ -1,5 +1,15 @@
 Attribute VB_Name = "DigitalMultimeterControl"
 Option Explicit
+
+' =============================================================================
+' Module:      DigitalMultimeterControl
+' Purpose:     Controls the Keithley Digital Multimeter and Keithley 7001 Switch Matrix via GPIB.
+' Dependencies: ieeeevb, Constants
+' Depends On:  OffsetCheck.bas, MainForm.frm
+' Translation Notes:
+'   - Communicates using SCPI commands over IEEE-488.
+'   - Replace with modern hardware control APIs (e.g. VISA API) and keep the SCPI strings.
+' =============================================================================
 Public Const PortNumber As Integer = 16
 Public Sub SendDMMCommand(ByVal Command As String)
     If DevMode Then Exit Sub

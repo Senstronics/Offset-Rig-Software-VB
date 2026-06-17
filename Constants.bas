@@ -1,6 +1,16 @@
 Attribute VB_Name = "Constants"
 Option Explicit
 
+' =============================================================================
+' Module:      Constants
+' Purpose:     Centralised measurement, voltage, conversion, and batch size constants.
+' Dependencies: None
+' Depends On:  OffsetCheck.bas, MainForm.frm, DigitalMultimeterControl.bas
+' Translation Notes:
+'   - Group constants into a settings or constants class/module in the target language.
+'   - If using a compiled language, ensure these can be configured at compile-time or run-time.
+' =============================================================================
+
 ' === Measurement Thresholds ===
 Public Const STC_OVERFLOW_OHMS As Double = 40000000       ' STC overflow threshold
 Public Const PACK_INSULATION_OHMS As Double = 100000000   ' Pack insulation threshold

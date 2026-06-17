@@ -1,5 +1,15 @@
 Attribute VB_Name = "ControlPSU"
 Option Explicit
+
+' =============================================================================
+' Module:      ControlPSU
+' Purpose:     Controls the DC Power Supply (PSU) using IVI COM drivers.
+' Dependencies: ieeeevb (for Sleep)
+' Depends On:  OffsetCheck.bas, DigitalMultimeterControl.bas
+' Translation Notes:
+'   - Employs COM automation to interact with Keithley2230 IVI Driver DLL.
+'   - Migrate to standard VISA / SCPI commands or newer .NET IVI drivers.
+' =============================================================================
 Dim Driver As New Keithley2230
 Public Sub InitialisePSU()
     If DevMode Then Exit Sub

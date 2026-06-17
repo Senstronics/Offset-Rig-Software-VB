@@ -1,6 +1,16 @@
 Attribute VB_Name = "Database"
 Option Explicit
 
+' =============================================================================
+' Module:      Database
+' Purpose:     Accesses the SQLite setup database for retrieving and checking limits.
+' Dependencies: None (defines custom dll declares / ADODB connection)
+' Depends On:  OffsetCheck.bas, MainForm.frm, LogFile.bas, PWord.frm
+' Translation Notes:
+'   - Uses ADODB and sqlite3.dll custom declares.
+'   - Replace with standard ADO.NET SQLite libraries or standard SQLite bindings in the target language.
+' =============================================================================
+
 #If twinBASIC Then
     Private Declare PtrSafe Function sqlite3_open16 CDecl Lib "sqlite3.dll" (ByVal filename As LongPtr, ByRef ppDb As LongPtr) As Long
     Private Declare PtrSafe Function sqlite3_close CDecl Lib "sqlite3.dll" (ByVal db As LongPtr) As Long

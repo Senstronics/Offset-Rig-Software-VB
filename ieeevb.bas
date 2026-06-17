@@ -1,6 +1,16 @@
 Attribute VB_Name = "ieeeevb"
 Option Explicit
 
+' =============================================================================
+' Module:      ieeeevb
+' Purpose:     NI-488.2 GPIB vendor SDK library wrapper (declares and constants).
+' Dependencies: None (depends on external winmm.dll / gpib-32.dll)
+' Depends On:  DigitalMultimeterControl.bas, ControlPSU.bas
+' Translation Notes:
+'   - Capital Equipment Corp (CEC) / NI GPIB Win32 DLL declares.
+'   - Replace these direct wrapper calls with a modern VISA or GPIB package (e.g. PyVISA, NI-VISA .NET).
+' =============================================================================
+
 '****************************************************************************************************
 'Module1  (ieeevb.bas)          Visual Basic 6.0 Module
 'CEC IEEE-488 subroutines for use with CEC interface cards

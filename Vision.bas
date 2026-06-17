@@ -1,6 +1,16 @@
 Attribute VB_Name = "Vision"
 Option Explicit
 
+' =============================================================================
+' Module:      Vision
+' Purpose:     Communicates with the camera system over serial RS-232 to verify O-rings and restrictors.
+' Dependencies: MainForm (uses MSComm control)
+' Depends On:  OffsetCheck.bas
+' Translation Notes:
+'   - Relies on MSComm ActiveX controls.
+'   - Translate to standard serial port API of the target environment.
+' =============================================================================
+
 Public Sub SendvisionCommand(ByVal Command As String)
     If DevMode Then Exit Sub
     MainForm.VisionComm.Output = Command & vbCr

@@ -1,6 +1,16 @@
 Attribute VB_Name = "InputsOutputs"
 Option Explicit
 
+' =============================================================================
+' Module:      InputsOutputs
+' Purpose:     Rig physical I/O polling, interlock status checking, and relay output control.
+' Dependencies: PCI7250
+' Depends On:  OffsetCheck.bas, MainForm.frm
+' Translation Notes:
+'   - Interacts with physical hardware via register and DLL calls.
+'   - Keep logic isolated from UI, migrating calls to the new I/O library.
+' =============================================================================
+
 Global card As Integer
 Public IsInterlockClosed As Boolean
 Public Sub Initialise7250()
