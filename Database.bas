@@ -26,9 +26,33 @@ Option Explicit
 #End If
 
 #If VB7 Then
-    Private Declare PtrSafe Function SysAllocString Lib "oleaut32.dll" (ByVal pOlechar As LongPtr) As String
+    Private Declare PtrSafe Function SysAllocString Lib "oleaut32.dll" (ByVal pOlechar As LongPtr) As LongPtr
+    Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As LongPtr)
 #Else
-    Private Declare Function SysAllocString Lib "oleaut32.dll" (ByVal pOlechar As Long) As String
+    Private Declare Function SysAllocString Lib "oleaut32.dll" (ByVal pOlechar As Long) As Long
+    Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As Long)
+#End If
+
+#If VB7 Then
+Private Function PointerToString(ByVal ptr As LongPtr) As String
+    If ptr = 0 Then Exit Function
+    Dim bstrPtr As LongPtr
+    bstrPtr = SysAllocString(ptr)
+    If bstrPtr <> 0 Then
+        CopyMemory ByVal VarPtr(PointerToString), bstrPtr, 8
+    End If
+    PointerToString = Trim$(PointerToString)
+End Function
+#Else
+Private Function PointerToString(ByVal ptr As Long) As String
+    If ptr = 0 Then Exit Function
+    Dim bstrPtr As Long
+    bstrPtr = SysAllocString(ptr)
+    If bstrPtr <> 0 Then
+        CopyMemory ByVal VarPtr(PointerToString), bstrPtr, 4
+    End If
+    PointerToString = Trim$(PointerToString)
+End Function
 #End If
 
 Private Const SQLITE_OK As Long = 0
@@ -108,10 +132,10 @@ Public Function DB_GetProductRange(ByVal WorksOrder As String, ByRef OutRoute As
         If res = SQLITE_ROW Then
             Dim ptr As LongPtr
             ptr = sqlite3_column_text16(hStmt, 0)
-            If ptr <> 0 Then OutRoute.Prefix = SysAllocString(ptr)
+            If ptr <> 0 Then OutRoute.Prefix = PointerToString(ptr)
             
             ptr = sqlite3_column_text16(hStmt, 1)
-            If ptr <> 0 Then OutRoute.ProcessName = SysAllocString(ptr)
+            If ptr <> 0 Then OutRoute.ProcessName = PointerToString(ptr)
             
             OutRoute.LimitVoltage = sqlite3_column_double(hStmt, 2)
             OutRoute.RequireVerification = (sqlite3_column_int(hStmt, 3) <> 0)
@@ -153,7 +177,7 @@ Public Function DB_GetBoardType(ByVal Code As String, ByRef OutSymbol As String,
         If res = SQLITE_ROW Then
             Dim ptr As LongPtr
             ptr = sqlite3_column_text16(hStmt, 0)
-            If ptr <> 0 Then OutSymbol = SysAllocString(ptr)
+            If ptr <> 0 Then OutSymbol = PointerToString(ptr)
             OutRequireSTC = (sqlite3_column_int(hStmt, 1) <> 0)
             DB_GetBoardType = True
         Else
@@ -179,7 +203,7 @@ Public Function DB_GetConnector(ByVal Code As String, ByRef OutName As String, B
         If res = SQLITE_ROW Then
             Dim ptr As LongPtr
             ptr = sqlite3_column_text16(hStmt, 0)
-            If ptr <> 0 Then OutName = SysAllocString(ptr)
+            If ptr <> 0 Then OutName = PointerToString(ptr)
             OutIsFourPin = (sqlite3_column_int(hStmt, 1) <> 0)
             DB_GetConnector = True
         Else
@@ -230,7 +254,7 @@ Public Function DB_GetColourName(ByVal Code As String) As String
         If res = SQLITE_ROW Then
             Dim ptr As LongPtr
             ptr = sqlite3_column_text16(hStmt, 0)
-            If ptr <> 0 Then Val = SysAllocString(ptr)
+            If ptr <> 0 Then Val = PointerToString(ptr)
         Else
             Val = ""
         End If

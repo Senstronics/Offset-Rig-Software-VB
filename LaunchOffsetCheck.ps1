@@ -4,7 +4,7 @@
 $NetworkPath = "Q:\SENSTRONICS\CONTROLLED MACHINE SOFTWARE\Offset Rig Software VB"
 $NetworkExe = Join-Path $NetworkPath "OffsetCheck.exe"
 
-$LocalDir = "C:\ProgramData\Senstronics\OffsetRig"
+$LocalDir = "C:\offset setup files"
 $LocalExe = Join-Path $LocalDir "OffsetCheck.exe"
 
 Write-Host "Checking for software updates at: $NetworkPath"

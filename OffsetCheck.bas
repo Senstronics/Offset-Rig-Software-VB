@@ -366,7 +366,10 @@ Dim IsFourPinVal As Boolean
         CurrentRoute = LocalRoute
     End If
     
-    If HasRoute And CurrentRoute.ProcessName = "PackOnly" Then
+    Dim CleanProcName As String
+    CleanProcName = Trim$(CurrentRoute.ProcessName)
+    
+    If HasRoute And CleanProcName = "PackOnly" Then
         PackOnly = True
     Else
         PackOnly = False
