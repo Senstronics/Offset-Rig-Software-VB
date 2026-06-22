@@ -85,7 +85,7 @@ Public Sub ParseFirstBarcode(ByVal Barcode As String)
 
     ' Determine O-Ring Required
     If Len(Barcode) >= 14 And Mid$(Barcode, 14, 1) = "/" Then
-        If (Mid$(Barcode, 15, 2) = "") Or (Mid$(Barcode, 15, 1) = "-") Or (Mid$(Barcode, 15, 2) = "--") Or (Len(Barcode) >= 30 And Mid$(Barcode, 29, 2) = "TT") Then
+        If (Mid$(Barcode, 15, 2) = "") Or (Mid$(Barcode, 15, 1) = "-") Or (Mid$(Barcode, 15, 2) = "--") Or (Len(Barcode) >= 30 And (Mid$(Barcode, 29, 2) = "TT" Or Mid$(Barcode, 29, 2) = "--")) Then
             ORingRequired = False
         Else
             ORingRequired = True
