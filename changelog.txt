@@ -1,3 +1,14 @@
+Version v1.1.2 - 2026-06-22 17:29
+========================================
+* Fix for database parsing (5ab1df5)
+* Fix compilation error: Rename START call in InputsOutputs.CheckInputs to StartTest (a747eab)
+* Restructuring Phase 6: Translation Headers & Guide (9085755)
+* Restructuring Phase 5: Naming Standardisation (Rename Module1 to AudioUtils, PascalCase routines, fix typos) (56b3dd5)
+* Restructuring Phase 4: Fix Incorrect Function Signatures in DigitalMultimeterControl (54a16d8)
+* Restructuring Phase 3: Consolidate Duplicated Logic & Password Forms (f9b810a)
+* Restructuring Phase 2: Extract Named Constants (fb58737)
+* Restructuring Phase 1: Dead Code Removal (7a30b15)
+
 Version v1.1.1 - 2026-06-16 16:30
 ========================================
 * Readied for large restructure. (79a2c8b)
