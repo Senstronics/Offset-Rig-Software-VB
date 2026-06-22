@@ -11,7 +11,7 @@ Option Explicit
 '   - Replace file logging with standard logging frameworks (e.g., NLog, log4net, Python logging).
 ' =============================================================================
 
-Public Const CompileVersion As String = "v1.1.2"
+Public Const CompileVersion As String = "v1.1.3"
 Public UpdateNetworkPath As String
 Public DevMode As Boolean
 
