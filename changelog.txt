@@ -1,3 +1,7 @@
+Version v1.1.4 - 2026-07-07 16:40
+========================================
+* Fix for default values on normal product (a7c5a00)
+
 Version v1.1.3 - 2026-06-22 17:55
 ========================================
 * Fix for database parsing (7c2c094)
