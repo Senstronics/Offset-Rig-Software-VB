@@ -364,6 +364,13 @@ Dim IsFourPinVal As Boolean
     HasRoute = DB_GetProductRange(WorksOrder, LocalRoute)
     If HasRoute Then
         CurrentRoute = LocalRoute
+    Else
+        CurrentRoute.Prefix = ""
+        CurrentRoute.ProcessName = ""
+        CurrentRoute.LimitVoltage = 0.0
+        CurrentRoute.RequireVerification = False
+        CurrentRoute.CurrentDrawLower = -1.0
+        CurrentRoute.CurrentDrawUpper = -1.0
     End If
     
     Dim CleanProcName As String
