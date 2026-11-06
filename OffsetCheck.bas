@@ -180,6 +180,10 @@ Public Function WOInputLine(ByVal FileHandle As Integer) As String
         End If
     Wend
 End Function
+Public Function GetCleanWorksOrder() As String
+    GetCleanWorksOrder = Trim$(Replace(Mid$(MainForm.WorksOrderBarcode, 5, 15), "#", ""))
+End Function
+
 Private Function ProcessLiveWorkOrdersFileLine(ByVal s As String)
 
     Dim WO As String
@@ -193,7 +197,7 @@ Private Function ProcessLiveWorkOrdersFileLine(ByVal s As String)
     
         SplitLiveWorkOrder s, WO, PN, BC1, BC2, BC3
         
-        WorkOrder = (Mid$(MainForm.WorksOrderBarcode, 5, 15))
+        WorkOrder = GetCleanWorksOrder()
         
         If WorkOrder = WO Then
             WorkOrderFound = True
@@ -305,7 +309,6 @@ End Function
 
 Private Function LookupBoardAndSetSTCTarget(ByVal BoardTypeVal As String, ByVal ConnType As String) As Boolean
     Dim ReqSTC As Boolean
-    Dim PinOutSwitch As String
     If DB_GetBoardType(BoardTypeVal, PinOutSwitch, ReqSTC) Then
         MainForm.BoardTypeDisplay = BoardTypeVal
         If Not ReqSTC Then
@@ -336,7 +339,7 @@ Dim ConnName As String
 Dim ReqSTC As Boolean
 Dim IsFourPinVal As Boolean
 
-    WorksOrder = (Mid$(MainForm.WorksOrderBarcode, 5, 15))
+    WorksOrder = GetCleanWorksOrder()
     
     MainForm.SensorID.Text = 1
     SensorNumber = 1
@@ -355,6 +358,7 @@ Dim IsFourPinVal As Boolean
     End If
     
     LoadOffsetConfig
+    MainForm.SetVisibilityForMode "Standard"
     
     ' Parse the first and third barcodes programmatically
     ParseFirstBarcode MainForm.FirstMCSBarcode
@@ -1398,7 +1402,7 @@ Dim id As Double
     
     AddToHistoryLogCDrive "Sub exited"
 
-    WorksOrder = (Mid$(MainForm.WorksOrderBarcode, 5, 15))
+    If Trim$(WorksOrder) = "" Then WorksOrder = GetCleanWorksOrder()
     SensorNumber = MainForm.SensorID.Text
         
     AddToHistoryLogCDrive "starting log entry"
@@ -1417,7 +1421,7 @@ Dim id As Double
         Dim ChannelNum As Long
         ChannelNum = Val(MainForm.CableNumberDisplay)
         If ChannelNum > 0 Then
-            MainForm.NumberOfUsesDisplay = MainForm.NumberOfUsesDisplay + 1
+            MainForm.NumberOfUsesDisplay = Val(MainForm.NumberOfUsesDisplay) + 1
             DB_IncrementCableUsage ChannelNum
             
             Dim CurrentUsage As Long
@@ -1462,7 +1466,7 @@ Private Sub FindOffset()
     Dim IDSTART As Double
     Dim RigFound As Boolean
 
-    WorksOrder = (Mid$(MainForm.WorksOrderBarcode, 5, 15))
+    If Trim$(WorksOrder) = "" Then WorksOrder = GetCleanWorksOrder()
     
     RigFound = False
 
@@ -1860,7 +1864,7 @@ End If
 MainForm.LoadTypeDisplay.Caption = LoadType
   
  ' Apply the Line of Best Fit to compute resistor value (Linearity: R^2 = 99.998%)
- LoadValue = 0.313879 * LoadValue - 0.174007
+ LoadValue = Round(0.313879 * LoadValue - 0.174007, 0)
 
 End Sub
 
@@ -1877,7 +1881,7 @@ Public Sub VerifySupplyCurrent(Optional ByVal DefaultLower As Double = 2#, Optio
     LowerLim = CurrentRoute.CurrentDrawLower
     UpperLim = CurrentRoute.CurrentDrawUpper
     
-    If LowerLim = -1# And UpperLim = -1# Then
+    If LowerLim <= 0# And UpperLim <= 0# Then
         LowerLim = DefaultLower
         UpperLim = DefaultUpper
     End If

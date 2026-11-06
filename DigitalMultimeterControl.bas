@@ -97,6 +97,9 @@ Public Sub RouteDMM(ByVal MeasType As String)
                 Case "L": Suffix = "L"
                 Case "N": Suffix = "N"
                 Case "F": Suffix = "F"
+                Case "C": Suffix = "C"
+                Case "6": Suffix = "6"
+                Case "U": Suffix = "U"
                 Case "X":
                     If MeasType = "STCGnd" Then Suffix = "L"
                 Case "3":

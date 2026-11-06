@@ -40,6 +40,11 @@ Public Function FindPODInExcelFile() As Boolean
     Set xlBook = Nothing
     Set xlSheet = Nothing
     
+    If Not FindExcelFile() Then
+        FindPODInExcelFile = False
+        Exit Function
+    End If
+    
     FilePath = ResultsPath
     FileName = FilePath & WorksOrder & ".xls"
     
@@ -72,22 +77,24 @@ errhandler_open:
     If Response = vbRetry Then
         Resume RetryOpen
     End If
+    Resume Cleanup_FindPOD
     
 errhandler:
     MsgBox "ERROR ACCESSING FILE"
+    Resume Cleanup_FindPOD
+
+Cleanup_FindPOD:
+    On Error Resume Next
     Set xlSheet = Nothing
     If Not xlBook Is Nothing Then
-        On Error Resume Next
         xlBook.Close SaveChanges:=False
-        On Error GoTo 0
         Set xlBook = Nothing
     End If
     If Not xlApp Is Nothing Then
-        On Error Resume Next
         xlApp.Quit
-        On Error GoTo 0
         Set xlApp = Nothing
     End If
+    On Error GoTo 0
     FindPODInExcelFile = False
 End Function
 
@@ -107,6 +114,10 @@ Public Function FindResults()
     Set xlBook = Nothing
     Set xlSheet = Nothing
     
+    If Not FindExcelFile() Then
+        Exit Function
+    End If
+    
     FilePath = ResultsPath
     FileName = FilePath & WorksOrder & ".xls"
     
@@ -120,20 +131,24 @@ RetryOpen:
     On Error GoTo errhandler
     Set xlSheet = xlBook.Worksheets(1)
     
-    MainForm.PassedBox = xlSheet.Cells(1, 2).Value
-    MainForm.FailedBox = xlSheet.Cells(2, 2).Value
+    MainForm.PassedBox = Val(xlSheet.Cells(1, 2).Value & "")
+    MainForm.FailedBox = Val(xlSheet.Cells(2, 2).Value & "")
     
-    If MainForm.FailedBox = 0 Then
+    If Val(MainForm.FailedBox) = 0 Then
         MainForm.PercentBox = "0"
     Else
-        TotalGood = MainForm.PassedBox
-        TotalBad = MainForm.FailedBox
+        TotalGood = Val(MainForm.PassedBox)
+        TotalBad = Val(MainForm.FailedBox)
         TotalParts = TotalGood + TotalBad
-        PercentFail = Format$((TotalBad / (TotalBad + TotalGood) * 100), "0")
+        If TotalParts > 0 Then
+            PercentFail = Format$((TotalBad / TotalParts * 100), "0")
+        Else
+            PercentFail = "0"
+        End If
         MainForm.PercentBox = PercentFail
     End If
     
-    If MainForm.PercentBox > 5 Then
+    If Val(MainForm.PercentBox) > 5 Then
         MainForm.PercentBox.BackColor = &HFF&
     Else
         MainForm.PercentBox.BackColor = &HFFFFFF
@@ -152,22 +167,24 @@ errhandler_open:
     If Response = vbRetry Then
         Resume RetryOpen
     End If
+    Resume Cleanup_FindResults
     
 errhandler:
     MsgBox "ERROR ACCESSING FILE"
+    Resume Cleanup_FindResults
+
+Cleanup_FindResults:
+    On Error Resume Next
     Set xlSheet = Nothing
     If Not xlBook Is Nothing Then
-        On Error Resume Next
         xlBook.Close SaveChanges:=False
-        On Error GoTo 0
         Set xlBook = Nothing
     End If
     If Not xlApp Is Nothing Then
-        On Error Resume Next
         xlApp.Quit
-        On Error GoTo 0
         Set xlApp = Nothing
     End If
+    On Error GoTo 0
 End Function
 
 Public Sub CreateExcel()
@@ -260,22 +277,24 @@ errhandler_save:
     If Response = vbRetry Then
         Resume RetrySave
     End If
+    Resume Cleanup_CreateExcel
     
 errhandler:
     MsgBox "ERROR CREATING EXCEL FILE"
+    Resume Cleanup_CreateExcel
+
+Cleanup_CreateExcel:
+    On Error Resume Next
     Set xlSheet = Nothing
     If Not xlBook Is Nothing Then
-        On Error Resume Next
         xlBook.Close SaveChanges:=False
-        On Error GoTo 0
         Set xlBook = Nothing
     End If
     If Not xlApp Is Nothing Then
-        On Error Resume Next
         xlApp.Quit
-        On Error GoTo 0
         Set xlApp = Nothing
     End If
+    On Error GoTo 0
 End Sub
 
 
@@ -303,6 +322,13 @@ Public Sub UpdateExcelWithIdResults()
     Set xlBook = Nothing
     Set xlSheet = Nothing
     
+    If Not FindExcelFile() Then
+        CreateExcel
+        If Not FindExcelFile() Then
+            Exit Sub
+        End If
+    End If
+
     FilePath = ResultsPath
     AddToHistoryLogCDrive "Open Excel"
     FileName = FilePath & WorksOrder & ".xls"
@@ -346,36 +372,40 @@ RetryOpen:
     
     If SensorStatus(MainForm.SensorID) = PASSED Then
         If InitialResult = "" Then
-            MainForm.PassedBox = MainForm.PassedBox + 1
+            MainForm.PassedBox = Val(MainForm.PassedBox) + 1
         Else
             If InitialResult = "PASSED" Then
             Else
-                MainForm.FailedBox = MainForm.FailedBox - 1
-                MainForm.PassedBox = MainForm.PassedBox + 1
+                MainForm.FailedBox = Val(MainForm.FailedBox) - 1
+                MainForm.PassedBox = Val(MainForm.PassedBox) + 1
             End If
         End If
     Else
         If InitialResult = "" Then
-            MainForm.FailedBox = MainForm.FailedBox + 1
+            MainForm.FailedBox = Val(MainForm.FailedBox) + 1
         Else
             If InitialResult = "PASSED" Then
-                MainForm.FailedBox = MainForm.FailedBox + 1
-                MainForm.PassedBox = MainForm.PassedBox - 1
+                MainForm.FailedBox = Val(MainForm.FailedBox) + 1
+                MainForm.PassedBox = Val(MainForm.PassedBox) - 1
             End If
         End If
     End If
     
-    If MainForm.FailedBox = 0 Then
+    If Val(MainForm.FailedBox) = 0 Then
         MainForm.PercentBox = "0"
     Else
-        TotalGood = MainForm.PassedBox
-        TotalBad = MainForm.FailedBox
+        TotalGood = Val(MainForm.PassedBox)
+        TotalBad = Val(MainForm.FailedBox)
         TotalParts = TotalGood + TotalBad
-        PercentFail = Format$((TotalBad / (TotalBad + TotalGood) * 100), "0")
+        If TotalParts > 0 Then
+            PercentFail = Format$((TotalBad / TotalParts * 100), "0")
+        Else
+            PercentFail = "0"
+        End If
         MainForm.PercentBox = PercentFail
     End If
     
-    If MainForm.PercentBox > 5 Then
+    If Val(MainForm.PercentBox) > 5 Then
         MainForm.PercentBox.BackColor = &HFF&
     Else
         MainForm.PercentBox.BackColor = &HFFFFFF
@@ -438,7 +468,7 @@ errhandler_open:
     If MsgResponse = vbRetry Then
         Resume RetryOpen
     End If
-    GoTo errhandler_silent
+    Resume Cleanup_UpdateExcel
     
 errhandler_save:
     MsgResponse = MsgBox("Error saving results sheet: " & FileName & vbCrLf & _
@@ -446,23 +476,24 @@ errhandler_save:
     If MsgResponse = vbRetry Then
         Resume RetrySave
     End If
+    Resume Cleanup_UpdateExcel
     
 errhandler:
     MsgBox " ERROR SAVING DATA TO FILE"
-errhandler_silent:
+    Resume Cleanup_UpdateExcel
+
+Cleanup_UpdateExcel:
+    On Error Resume Next
     Set xlSheet = Nothing
     If Not xlBook Is Nothing Then
-        On Error Resume Next
         xlBook.Close SaveChanges:=False
-        On Error GoTo 0
         Set xlBook = Nothing
     End If
     If Not xlApp Is Nothing Then
-        On Error Resume Next
         xlApp.Quit
-        On Error GoTo 0
         Set xlApp = Nothing
     End If
+    On Error GoTo 0
 End Sub
 
 Public Function OpenExcelFile()
@@ -502,7 +533,11 @@ Public Sub PrintLabel()
     
     On Error GoTo errhandler
    
-    WorkOrder = (Mid$(MainForm.WorksOrderBarcode, 5, 15))
+    If Trim$(WorksOrder) <> "" Then
+        WorkOrder = WorksOrder
+    Else
+        WorkOrder = GetCleanWorksOrder()
+    End If
     IDNumber = MainForm.SensorID
     FileName = LabelPrintInputPath
     

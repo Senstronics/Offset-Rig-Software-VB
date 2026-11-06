@@ -1,3 +1,21 @@
+Version v1.1.7 - 2026-11-06 13:20
+========================================
+* Round calculated pull-up/pull-down load resistor values in CheckLoad to nearest integer
+
+Version v1.1.6 - 2026-11-06 11:20
+========================================
+* Strip '#' barcode padding from WorksOrder via GetCleanWorksOrder and preserve WorksOrder across batch
+* Harden Excel results file handling and error cleanup in CSVFile.bas and guard numeric display arithmetic with Val()
+* Persist right-side Works Order / Test Details fields across parts until Clear Down is pressed
+* Add missing PinOutSwitch cases ('C', '6', 'U') in DigitalMultimeterControl.RouteDMM
+* Fix SetVisibilityForMode so unchecked test fields remain hidden when combining visibility modes
+
+Version v1.1.5 - 2026-11-05 14:32
+========================================
+* Fix PinOutSwitch variable shadowing in LookupBoardAndSetSTCTarget
+* Fix Scan All barcode focus progression in MainForm
+* Harden default current draw limit fallback in VerifySupplyCurrent
+
 Version v1.1.4 - 2026-07-07 16:40
 ========================================
 * Fix for default values on normal product (a7c5a00)

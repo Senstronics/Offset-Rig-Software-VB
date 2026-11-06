@@ -2184,6 +2184,14 @@ Private Sub ScanAllCheck_Click()
         SCANMCS2Label.Enabled = True
         SCANMCS3Label.Enabled = True
         PartNumberLabel.Enabled = True
+
+        On Error Resume Next
+        If Len(WorksOrderBarcode.Text) >= 5 Then
+            FirstMCSBarcode.SetFocus
+        Else
+            WorksOrderBarcode.SetFocus
+        End If
+        On Error GoTo 0
     End If
 
 End Sub
@@ -2209,7 +2217,21 @@ Public Sub ProcessKeypress(ByVal keyascii As Integer)
             SCANMCS3Label.Enabled = True
             PartNumberLabel.Enabled = True
 
-            FirstMCSBarcode.SetFocus
+            On Error Resume Next
+            If ActiveControl Is WorksOrderBarcode Then
+                FirstMCSBarcode.SetFocus
+            ElseIf ActiveControl Is FirstMCSBarcode Then
+                SecondMCSBarcode.SetFocus
+            ElseIf ActiveControl Is SecondMCSBarcode Then
+                ThirdMCSBarcode.SetFocus
+            ElseIf ActiveControl Is ThirdMCSBarcode Then
+                PartNumber.SetFocus
+            ElseIf ActiveControl Is PartNumber Then
+                CheckDetailsButton.SetFocus
+            Else
+                FirstMCSBarcode.SetFocus
+            End If
+            On Error GoTo 0
         End If
     End If
 
@@ -2339,6 +2361,9 @@ Public Sub ResetMeasurementDisplays()
     Vout1OriginalOutputDisplay = ""
     VoutDiffDisplay = ""
     OFFSETDIFFDISPLAY = ""
+End Sub
+
+Public Sub ResetWorkOrderDisplays()
     ORingColourDisplay = ""
     CableNumberDisplay = ""
     RigDisplay = ""
@@ -2357,7 +2382,6 @@ Public Sub ResetMeasurementDisplays()
     ORingDisplay = ""
     RestrictorDisplay = ""
     UnionCodeDisplay = ""
-    CurrentDisplay = ""
 End Sub
 
 Public Sub ResetBusinessState()
@@ -2395,67 +2419,67 @@ Public Sub ResetBusinessState()
 End Sub
 
 Public Sub SetVisibilityForMode(ByVal Mode As String)
-    ' Reset all to standard visible
-    LabelScanWOLAbel.Visible = True
-    VOUT2TEMPLABEL.Visible = True
-    LoadValueDisplay.Visible = True
-    LoadTypeDisplay.Visible = True
-    LoadLabel.Visible = True
-    VOUT2TARGETLABEL.Visible = True
-    VOUT2TargetDisplay.Visible = True
-    VOUT2TempDisplay.Visible = True
-    VOUT2ERRORLIMITLABEL.Visible = True
-    VOUT2LimitDisplay.Visible = True
-    ConnectorLabel.Visible = True
-    ConnectorTypeDisplay.Visible = True
-    BoardTypeLabel.Visible = True
-    BoardTypeDisplay.Visible = True
-    STCOUTPUTLabel.Visible = True
-    STCVSDisplay.Visible = True
-    STCGNDDisplay.Visible = True
-    STCVOUT1Display.Visible = True
-    STCVOUT2Display.Visible = True
-    VOUT2OUTPUTLABEL.Visible = True
-    VOUT2OutputDisplay.Visible = True
-    VOUT2OUTPUTERRORDISPLAY.Visible = True
-    VOUT2TARGETLABEL.Visible = True
-    VOUT2TargetDisplay.Visible = True
-    VOUT1OUTPUTLABEL.Visible = True
-    VOUT1OutputDisplay.Visible = True
-    VOUT2TempDisplay.Visible = True
-    VOUT2LimitDisplay.Visible = True
-    VOUT2ERRORLIMITLABEL.Visible = True
-    STCTargetDisplay.Visible = True
-    STCVOUT2LABEL.Visible = True
-    STCVSLabel.Visible = True
-    STCVOUT1Label.Visible = True
-    STCGNDLabel.Visible = True
-    STCOUTPUTLabel.Visible = True
-    LabelScanWOLAbel.Visible = True
-    SCANMCS1Label.Visible = True
-    SCANMCS2Label.Visible = True
-    SCANMCS3Label.Visible = True
-    PartNumber.Visible = True
-    WorksOrderBarcode.Visible = True
-    FirstMCSBarcode.Visible = True
-    SecondMCSBarcode.Visible = True
-    ThirdMCSBarcode.Visible = True
-    PartNumber.Visible = True
-    VOUT1ERRORLABEL.Visible = True
-    LimitPercentDisplay.Visible = True
-    VOUT1OUTPUTERRORDISPLAY.Visible = True
-    
-    ' Default Hidden Elements
-    CurrentDisplay.Visible = False
-    CurrentLabel.Visible = False
-    VoltageLabel.Visible = False
-    InsulationDisplay.Visible = False
-    InsulationLabel.Visible = False
-    OFFSETFROMCALLabel.Visible = False
-    OffsetFromCalDisplay.Visible = False
-    OFFSETDIFFDISPLAY.Visible = False
-    
-    If Mode = "OffsetOnly" Then
+    If Mode = "Standard" Then
+        ' Reset all to standard visible
+        LabelScanWOLAbel.Visible = True
+        VOUT2TEMPLABEL.Visible = True
+        LoadValueDisplay.Visible = True
+        LoadTypeDisplay.Visible = True
+        LoadLabel.Visible = True
+        VOUT2TARGETLABEL.Visible = True
+        VOUT2TargetDisplay.Visible = True
+        VOUT2TempDisplay.Visible = True
+        VOUT2ERRORLIMITLABEL.Visible = True
+        VOUT2LimitDisplay.Visible = True
+        ConnectorLabel.Visible = True
+        ConnectorTypeDisplay.Visible = True
+        BoardTypeLabel.Visible = True
+        BoardTypeDisplay.Visible = True
+        STCOUTPUTLabel.Visible = True
+        STCVSDisplay.Visible = True
+        STCGNDDisplay.Visible = True
+        STCVOUT1Display.Visible = True
+        STCVOUT2Display.Visible = True
+        VOUT2OUTPUTLABEL.Visible = True
+        VOUT2OutputDisplay.Visible = True
+        VOUT2OUTPUTERRORDISPLAY.Visible = True
+        VOUT2TARGETLABEL.Visible = True
+        VOUT2TargetDisplay.Visible = True
+        VOUT1OUTPUTLABEL.Visible = True
+        VOUT1OutputDisplay.Visible = True
+        VOUT2TempDisplay.Visible = True
+        VOUT2LimitDisplay.Visible = True
+        VOUT2ERRORLIMITLABEL.Visible = True
+        STCTargetDisplay.Visible = True
+        STCVOUT2LABEL.Visible = True
+        STCVSLabel.Visible = True
+        STCVOUT1Label.Visible = True
+        STCGNDLabel.Visible = True
+        STCOUTPUTLabel.Visible = True
+        LabelScanWOLAbel.Visible = True
+        SCANMCS1Label.Visible = True
+        SCANMCS2Label.Visible = True
+        SCANMCS3Label.Visible = True
+        PartNumber.Visible = True
+        WorksOrderBarcode.Visible = True
+        FirstMCSBarcode.Visible = True
+        SecondMCSBarcode.Visible = True
+        ThirdMCSBarcode.Visible = True
+        PartNumber.Visible = True
+        VOUT1ERRORLABEL.Visible = True
+        LimitPercentDisplay.Visible = True
+        VOUT1OUTPUTERRORDISPLAY.Visible = True
+        
+        ' Default Hidden Elements
+        CurrentDisplay.Visible = False
+        CurrentLabel.Visible = False
+        VoltageLabel.Visible = False
+        InsulationDisplay.Visible = False
+        InsulationLabel.Visible = False
+        OFFSETFROMCALLabel.Visible = False
+        OffsetFromCalDisplay.Visible = False
+        OFFSETDIFFDISPLAY.Visible = False
+    ElseIf Mode = "OffsetOnly" Then
         STCVSDisplay.Visible = False
         STCGNDDisplay.Visible = False
         STCVOUT1Display.Visible = False
@@ -2514,6 +2538,7 @@ Public Sub ClearDown()
     Call ResetBusinessState
     Call ResetAllPassFailIcons
     Call ResetMeasurementDisplays
+    Call ResetWorkOrderDisplays
     Call SetVisibilityForMode("Standard")
 End Sub
 
